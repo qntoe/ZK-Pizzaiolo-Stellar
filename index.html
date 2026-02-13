@@ -2,13 +2,13 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PIZZA HERO: The Grand Restaurant 🕶️🍕</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #050505; font-family: 'Orbitron', sans-serif; overflow: hidden; user-select: none; }
+        body { background-color: #050505; font-family: 'Orbitron', sans-serif; overflow: hidden; user-select: none; touch-action: none; }
         .pizza-font { font-family: 'Bangers', cursive; }
         .neon-text { text-shadow: 0 0 10px rgba(0, 255, 204, 0.8), 0 0 20px rgba(0, 255, 204, 0.4); }
         .neon-border { border: 2px solid #ff00ff; box-shadow: 0 0 15px rgba(255, 0, 255, 0.5); }
@@ -24,20 +24,20 @@
         <div id="overlay-content" class="phase-transition">
             <div class="text-9xl mb-4">🕶️</div>
             <h1 class="pizza-font text-8xl text-yellow-500 tracking-widest drop-shadow-[0_0_20px_#f59e0b]">PIZZA HERO</h1>
-            <h2 class="text-blue-400 font-bold tracking-[0.2em] mb-8 uppercase">Consigliere's Masterplan</h2>
+            <h2 class="text-blue-400 font-bold tracking-[0.2em] mb-8 uppercase text-sm">Consigliere's Masterplan</h2>
             
-            <div class="grid grid-cols-2 gap-6 max-w-2xl mb-10 text-left">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mb-10 text-left">
                 <div class="bg-blue-900/20 p-4 rounded-xl border border-blue-500/30">
-                    <span class="text-blue-400 font-black block mb-2 underline">PHASE 1: THE KITCHEN</span>
-                    <p class="text-xs text-gray-400">60 segundos de puro ritmo. Usa <span class="text-white font-bold">A S K L</span> para preparar masas. Cada barra llena = +1 Pizza.</p>
+                    <span class="text-blue-400 font-black block mb-2 underline text-xs">PHASE 1: THE KITCHEN</span>
+                    <p class="text-[10px] text-gray-400 leading-tight">60 segundos de ritmo. Usa <span class="text-white font-bold">A S K L</span>. Cada barra llena = +1 Pizza.</p>
                 </div>
                 <div class="bg-purple-900/20 p-4 rounded-xl border border-purple-500/30">
-                    <span class="text-purple-400 font-black block mb-2 underline">PHASE 2: THE TABLES</span>
-                    <p class="text-xs text-gray-400">Entrega tus pizzas a las mesas. <span class="text-white font-bold">Arrastra y suelta</span> (Drag & Flick) para lanzar con precisión.</p>
+                    <span class="text-purple-400 font-black block mb-2 underline text-xs">PHASE 2: THE TABLES</span>
+                    <p class="text-[10px] text-gray-400 leading-tight">Usa el mouse o dedo: <span class="text-white font-bold">Haz CLICK y ARRASTRA</span> hacia arriba para lanzar la pizza a las mesas.</p>
                 </div>
             </div>
 
-            <button onclick="startPhase1()" class="bg-yellow-500 hover:bg-white hover:text-yellow-600 text-black font-black px-16 py-5 rounded-full text-3xl transition-all transform hover:scale-110 shadow-[0_0_30px_#f59e0b]">
+            <button onclick="startPhase1()" class="bg-yellow-500 hover:bg-white hover:text-yellow-600 text-black font-black px-16 py-5 rounded-full text-2xl transition-all transform hover:scale-110 shadow-[0_0_30px_#f59e0b]">
                 ENTER THE RESTAURANT
             </button>
         </div>
@@ -46,21 +46,21 @@
     <!-- HUD -->
     <div id="hud" class="hidden absolute top-6 w-[800px] flex justify-between items-end px-4 z-10 pointer-events-none">
         <div class="flex flex-col">
-            <span id="phase-label" class="text-blue-400 font-black text-xs tracking-widest uppercase mb-1">Phase 1: Kitchen</span>
+            <span id="phase-label" class="text-blue-400 font-black text-[10px] tracking-widest uppercase mb-1">Phase 1: Kitchen</span>
             <div class="bg-gray-900/80 px-6 py-2 rounded-lg border-2 border-blue-500">
                 <span id="score-val" class="pizza-font text-4xl text-white">0</span>
             </div>
         </div>
         
         <div class="flex flex-col items-center">
-            <span id="timer-label" class="text-red-500 font-black text-xs tracking-widest uppercase mb-1">Time Remaining</span>
+            <span id="timer-label" class="text-red-500 font-black text-[10px] tracking-widest uppercase mb-1">Time Remaining</span>
             <div class="bg-gray-900/80 px-8 py-2 rounded-full border-2 border-red-500">
                 <span id="timer-val" class="pizza-font text-5xl text-white">60s</span>
             </div>
         </div>
 
         <div class="flex flex-col items-end">
-            <span id="extra-label" class="text-yellow-500 font-black text-xs tracking-widest uppercase mb-1">Pizzas Ready</span>
+            <span id="extra-label" class="text-yellow-500 font-black text-[10px] tracking-widest uppercase mb-1">Pizzas Ready</span>
             <div class="bg-gray-900/80 px-6 py-2 rounded-lg border-2 border-yellow-500">
                 <span id="extra-val" class="pizza-font text-4xl text-white">0</span>
             </div>
@@ -87,7 +87,7 @@
         let pizzasCreated = 0;
         let pizzasDelivered = 0;
         let timeLeft = 60;
-        let currentPhase = 0; // 0: Menu, 1: Kitchen, 2: Delivery
+        let currentPhase = 0;
         let doughProgress = 0;
 
         // --- Audio Engine ---
@@ -126,6 +126,7 @@
 
         // Phase 2 Objects
         let tables, deliveredPizzas, trajectoryLine, activePizza;
+        let dragStartX, dragStartY;
 
         function preload() {}
 
@@ -138,10 +139,9 @@
                 }
             });
 
-            // Input for Phase 2: Flick
-            this.input.on('pointerdown', startFlick);
-            this.input.on('pointerup', endFlick);
-            this.input.on('pointermove', updateTrajectory);
+            this.input.on('pointerdown', startToss);
+            this.input.on('pointerup', endToss);
+            this.input.on('pointermove', updateToss);
             
             trajectoryLine = this.add.graphics();
         }
@@ -154,7 +154,7 @@
             }
         }
 
-        // --- Phase 1: Kitchen Logic ---
+        // --- Phase 1 Logic ---
         function startPhase1() {
             currentPhase = 1;
             timeLeft = 60;
@@ -176,6 +176,7 @@
 
         function setupP1Scene() {
             const self = sceneInstance;
+            self.children.removeAll();
             self.add.rectangle(400, 300, 800, 600, 0x050505);
             
             const g = self.add.graphics();
@@ -183,15 +184,10 @@
                 g.lineStyle(2, 0x1a1a1a);
                 g.lineBetween(x, 0, x, 600);
                 self.add.circle(x, 520, 35, 0x000000).setStrokeStyle(3, COLORS[i]);
-                self.add.text(x - 10, 560, KEYS[i], { fontFamily: 'Orbitron', fontSize: '20px', fill: '#444' });
             });
 
             p1Notes = self.physics.add.group();
-            self.p1SpawnEvent = self.time.addEvent({
-                delay: 600,
-                callback: spawnP1Note,
-                loop: true
-            });
+            self.p1SpawnEvent = self.time.addEvent({ delay: 600, callback: spawnP1Note, loop: true });
         }
 
         function spawnP1Note() {
@@ -202,7 +198,7 @@
             n.add([c, t]);
             p1Notes.add(n);
             sceneInstance.physics.add.existing(n);
-            n.body.setVelocityY(450 + (score/1000) * 10);
+            n.body.setVelocityY(450);
             n.setData('lane', lane);
         }
 
@@ -211,11 +207,7 @@
             p1Notes.children.iterate(n => {
                 if(!n || n.getData('lane') !== lane) return;
                 const dist = Math.abs(n.y - 520);
-                if(dist < 80) {
-                    hit = true;
-                    n.destroy();
-                    processP1Hit(dist);
-                }
+                if(dist < 80) { hit = true; n.destroy(); processP1Hit(dist); }
             });
             if(!hit) playSfx(100, 'sawtooth', 0.1, 0.05);
         }
@@ -224,18 +216,15 @@
             let p = dist < 25 ? 30 : (dist < 50 ? 15 : 10);
             score += p * 10;
             doughProgress += p;
-            
             if(doughProgress >= 100) {
                 doughProgress = 0;
                 pizzasCreated++;
                 playSfx(1200, 'sine', 0.3, 0.1);
-                sceneInstance.cameras.main.flash(200, 0, 255, 204, 0.1);
             }
-            playSfx(440 + p*10, 'sine', 0.2);
             updateUI();
         }
 
-        // --- Phase 2: Delivery Logic ---
+        // --- Phase 2 Logic ---
         function transitionToPhase2() {
             currentPhase = 2;
             sceneInstance.p1SpawnEvent.remove();
@@ -249,7 +238,7 @@
                 <div class="bg-blue-600/20 p-8 rounded-3xl border-4 border-white mb-8">
                     <div class="text-9xl mb-4">🍕</div>
                     <span class="text-6xl pizza-font">x${pizzasCreated}</span>
-                    <p class="text-blue-400 font-bold tracking-widest uppercase">Pizzas Preparadas</p>
+                    <p class="text-blue-400 font-bold tracking-widest uppercase text-xs">Pizzas Ready for Delivery</p>
                 </div>
                 <button onclick="startPhase2()" class="bg-purple-600 hover:bg-white hover:text-purple-600 text-white font-black px-12 py-4 rounded-full text-2xl shadow-[0_0_30px_#a855f7]">
                     START DELIVERY
@@ -261,99 +250,95 @@
             document.getElementById('overlay').classList.add('hidden');
             document.getElementById('p1-progress').classList.add('hidden');
             document.getElementById('phase-label').innerText = "Phase 2: Delivery";
-            document.getElementById('extra-label').innerText = "Stock Remaining";
+            document.getElementById('extra-label').innerText = "Inventory";
             
             setupP2Scene();
-            timeLeft = 60; // Or whatever time we want for delivery
+            timeLeft = 60;
             startTimer();
             updateUI();
         }
 
         function setupP2Scene() {
             const self = sceneInstance;
-            self.children.removeAll(); // Clear scene
-            
-            // Draw Restaurant Floor
+            self.children.removeAll();
             self.add.rectangle(400, 300, 800, 600, 0x1a110a);
-            const grid = self.add.grid(400, 300, 800, 600, 50, 50, 0, 0, 0x2d1b0d);
+            self.add.grid(400, 300, 800, 600, 50, 50, 0, 0, 0x2d1b0d);
             
             tables = self.physics.add.group();
             deliveredPizzas = self.physics.add.group();
             
-            // Spawn Tables
-            for(let i=0; i<6; i++) {
-                spawnTable();
-            }
+            for(let i=0; i<6; i++) spawnTable();
 
-            // The Counter (Launch area)
             self.add.rectangle(400, 580, 800, 40, 0x3d2b1f).setStrokeStyle(2, 0xff00ff);
-            self.add.text(350, 575, "COUNTER", { fontFamily: 'Orbitron', fontSize: '12px', color: '#ff00ff' });
+            self.add.text(360, 575, "THE COUNTER", { fontFamily: 'Orbitron', fontSize: '10px', color: '#ff00ff' });
 
             self.physics.add.overlap(deliveredPizzas, tables, handleDelivery, null, self);
-            
             trajectoryLine = self.add.graphics();
         }
 
         function spawnTable() {
             const x = Phaser.Math.Between(100, 700);
-            const y = Phaser.Math.Between(100, 450);
+            const y = Phaser.Math.Between(80, 450);
             const table = sceneInstance.add.container(x, y);
             const wood = sceneInstance.add.circle(0, 0, 40, 0x5d4037).setStrokeStyle(4, 0xffffff);
-            const shadow = sceneInstance.add.circle(5, 5, 40, 0x000000, 0.3);
             const icon = sceneInstance.add.text(-15, -15, "👤", { fontSize: '30px' });
-            table.add([shadow, wood, icon]);
-            
+            table.add([wood, icon]);
             tables.add(table);
             sceneInstance.physics.add.existing(table);
-            table.body.setImmovable(true);
             table.body.setCircle(40, -40, -40);
         }
 
-        function startFlick(pointer) {
+        function startToss(pointer) {
             if(currentPhase !== 2 || pizzasCreated <= 0) return;
-            activePizza = sceneInstance.add.text(400, 550, "🍕", { fontSize: '40px' }).setOrigin(0.5);
+            dragStartX = pointer.x;
+            dragStartY = pointer.y;
+            activePizza = sceneInstance.add.container(400, 550);
+            const c = sceneInstance.add.circle(0, 0, 25, 0xffcc00).setStrokeStyle(3, 0xffffff);
+            const t = sceneInstance.add.text(-15, -15, "🍕", { fontSize: '30px' });
+            activePizza.add([c, t]);
+            activePizza.setDepth(100);
         }
 
-        function updateTrajectory(pointer) {
+        function updateToss(pointer) {
             if(!activePizza) return;
             trajectoryLine.clear();
             trajectoryLine.lineStyle(3, 0x00ffcc, 0.5);
-            trajectoryLine.setDepth(100);
             
-            const dx = pointer.x - 400;
-            const dy = pointer.y - 550;
-            
-            // Visual path
+            // Aiming line
             trajectoryLine.beginPath();
             trajectoryLine.moveTo(400, 550);
-            trajectoryLine.lineTo(400 - dx, 550 - dy);
+            const dx = pointer.x - dragStartX;
+            const dy = pointer.y - dragStartY;
+            trajectoryLine.lineTo(400 + dx, 550 + dy);
             trajectoryLine.strokePath();
         }
 
-        function endFlick(pointer) {
+        function endToss(pointer) {
             if(!activePizza) return;
             trajectoryLine.clear();
             
-            const dx = 400 - pointer.x;
-            const dy = 550 - pointer.y;
+            const dx = pointer.x - dragStartX;
+            const dy = pointer.y - dragStartY;
             
+            // Requerir un mínimo de movimiento para lanzar
+            if(Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+                activePizza.destroy();
+                activePizza = null;
+                return;
+            }
+
             pizzasCreated--;
             updateUI();
             
             sceneInstance.physics.add.existing(activePizza);
-            activePizza.body.setVelocity(dx * 2, dy * 2);
-            activePizza.body.setDrag(100);
+            // Multiplicador de fuerza
+            const power = 3.5;
+            activePizza.body.setVelocity(dx * power, dy * power);
+            activePizza.body.setDrag(50);
+            activePizza.body.setCircle(25, -25, -25);
             deliveredPizzas.add(activePizza);
             
-            // Arc effect (scale)
-            sceneInstance.tweens.add({
-                targets: activePizza,
-                scale: 1.5,
-                yoyo: true,
-                duration: 500,
-                ease: 'Sine.easeOut'
-            });
-
+            sceneInstance.tweens.add({ targets: activePizza, scale: 1.5, yoyo: true, duration: 400 });
             playSfx(600, 'sine', 0.2, 0.1);
             activePizza = null;
         }
@@ -366,12 +351,9 @@
             playSfx(880, 'sine', 0.3, 0.1);
             sceneInstance.cameras.main.shake(100, 0.005);
             updateUI();
-            
-            // Respawn table
             setTimeout(spawnTable, 2000);
         }
 
-        // --- Shared Logic ---
         function startTimer() {
             if(this.globalTimer) clearInterval(this.globalTimer);
             this.globalTimer = setInterval(() => {
@@ -389,8 +371,7 @@
         function updateUI() {
             document.getElementById('score-val').innerText = score;
             document.getElementById('timer-val').innerText = timeLeft + 's';
-            document.getElementById('extra-val').innerText = (currentPhase === 1 ? pizzasCreated : pizzasCreated);
-            
+            document.getElementById('extra-val').innerText = pizzasCreated;
             if(currentPhase === 1) {
                 document.getElementById('p1-bar').style.width = doughProgress + '%';
                 document.getElementById('p1-pct').innerText = Math.floor(doughProgress) + '%';
@@ -406,20 +387,20 @@
                 <div class="text-9xl mb-4">💎</div>
                 <h1 class="pizza-font text-7xl text-yellow-500 mb-2">SHIFT COMPLETE!</h1>
                 <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto my-8 text-left bg-gray-900/80 p-6 rounded-2xl border-2 border-blue-500">
-                    <div class="text-gray-400">Pizzas Entregadas:</div><div class="font-bold text-blue-400 text-xl">${pizzasDelivered}</div>
-                    <div class="text-gray-400">Score de Cocina:</div><div class="font-bold text-gray-200 text-xl">${score - (pizzasDelivered*1000)}</div>
+                    <div class="text-gray-400 text-xs uppercase">Delivered:</div><div class="font-bold text-blue-400 text-xl">${pizzasDelivered}</div>
+                    <div class="text-gray-400 text-xs uppercase">Kitchen Score:</div><div class="font-bold text-gray-200 text-xl">${score - (pizzasDelivered*1000)}</div>
                     <div class="col-span-2 h-px bg-gray-700 my-2"></div>
-                    <div class="text-yellow-500 font-black text-xl uppercase">Final Score:</div><div class="font-black text-3xl text-white">${score}</div>
+                    <div class="text-yellow-500 font-black text-xl uppercase">FINAL SCORE:</div><div class="font-black text-3xl text-white">${score}</div>
                 </div>
                 <div class="flex gap-4 justify-center">
-                    <button onclick="location.reload()" class="bg-gray-700 hover:bg-white hover:text-black text-white font-black px-10 py-4 rounded-full transition-all">RETRY SHIFT</button>
-                    <button onclick="submitZKProof()" class="bg-blue-600 hover:bg-white hover:text-blue-600 text-white font-black px-10 py-4 rounded-full transition-all shadow-[0_0_20px_#2563eb]">SUBMIT ZK PROOF</button>
+                    <button onclick="location.reload()" class="bg-gray-700 hover:bg-white hover:text-black text-white font-black px-10 py-4 rounded-full transition-all">RETRY</button>
+                    <button onclick="submitZKProof()" class="bg-blue-600 hover:bg-white hover:text-blue-600 text-white font-black px-10 py-4 rounded-full transition-all shadow-[0_0_20px_#2563eb]">SUBMIT ZK</button>
                 </div>
             `;
         }
 
         function submitZKProof() {
-            alert(`🕶️ CONSIGLIERE SLICE:\n\nPrueba ZK Validada exitosamente.\n\nFase 1 (Ritmo): OK\nFase 2 (Físicas): OK\nStellar Ledger: ACTUALIZADO\n\nTu honor en la cocina ha sido verificado.`);
+            alert(`🕶️ CONSIGLIERE SLICE:\n\nProof Generated.\nKitchen Performance: OK\nPhysics Delivery: OK\nStellar: UPDATED`);
             location.reload();
         }
     </script>
