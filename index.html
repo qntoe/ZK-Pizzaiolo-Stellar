@@ -3,17 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PIZZA HERO: The Physics Toss 🕶️🍕</title>
+    <title>PIZZA HERO: Production & Delivery 🕶️🍕</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #0a0a0a; font-family: 'Orbitron', sans-serif; overflow: hidden; }
+        body { background-color: #050505; font-family: 'Orbitron', sans-serif; overflow: hidden; }
         .pizza-font { font-family: 'Bangers', cursive; }
-        #overlay {
-            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
-            transition: 0.8s;
-        }
+        #overlay { background: radial-gradient(circle, #1a1a1a 0%, #000 100%); transition: 0.8s; }
+        .neon-border-blue { border: 2px solid #3b82f6; box-shadow: 0 0 15px rgba(59, 130, 246, 0.5); }
+        .neon-border-green { border: 2px solid #22c55e; box-shadow: 0 0 15px rgba(34, 197, 94, 0.5); }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center h-screen text-white select-none">
@@ -23,63 +22,102 @@
         <div id="overlay-content">
             <div class="text-9xl mb-4 animate-bounce">🍕</div>
             <h1 class="pizza-font text-8xl text-yellow-500 tracking-widest drop-shadow-[0_0_20px_#f59e0b]">PIZZA HERO</h1>
-            <h2 class="text-blue-400 font-bold tracking-[0.2em] mb-10">PHASE 2: THE PHYSICS TOSS</h2>
-            <p class="max-w-md text-gray-400 text-sm mb-10 leading-relaxed">
-                Usa <span class="text-white font-bold">A S K L</span> para lanzar los ingredientes al compás. 
-                Cada acierto "pega" el ingrediente a la masa física. ¡Completa la mejor pizza en 60 segundos!
-            </p>
+            <h2 class="text-blue-400 font-bold tracking-[0.2em] mb-6">FASE 1: PREP | FASE 2: DELIVERY</h2>
+            <div class="max-w-md bg-gray-900/80 p-6 rounded-2xl border border-gray-700 mb-8 text-sm text-gray-300 leading-relaxed">
+                <p class="mb-2"><span class="text-yellow-500 font-bold">FASE 1:</span> Usa <span class="text-white font-bold">A S K L</span> para recolectar ingredientes y llenar la barra de masa. ¡Cada barra llena es <span class="text-white font-bold">+1 Pizza</span>!</p>
+                <p><span class="text-green-500 font-bold">FASE 2:</span> Pulsa <span class="text-white font-bold">ESPACIO</span> para lanzar tus pizzas preparadas a los clientes hambrientos.</p>
+            </div>
             <button onclick="startPizzaHero()" class="bg-yellow-500 hover:bg-white hover:text-yellow-600 text-black font-black px-12 py-4 rounded-full text-2xl transition-all transform hover:scale-110 shadow-[0_0_30px_#f59e0b]">
-                START BAKE
+                COMIENZA EL TURNO
             </button>
         </div>
     </div>
 
-    <!-- Main Game Section -->
-    <div class="flex gap-10 items-center">
+    <!-- Main Game UI -->
+    <div class="flex gap-6 items-stretch h-[650px]">
         
-        <!-- Left Panel: Combo & Instructions -->
-        <div class="w-48 bg-gray-900/80 p-6 rounded-3xl border-2 border-blue-500 shadow-2xl flex flex-col items-center">
-            <span class="text-[10px] text-blue-400 font-bold mb-1 uppercase tracking-widest">Multiplier</span>
-            <span id="combo-val" class="pizza-font text-6xl text-white">x1</span>
-            <div class="w-full h-2 bg-gray-800 rounded-full mt-4 overflow-hidden">
-                <div id="combo-bar" class="h-full bg-blue-500 transition-all duration-300" style="width: 0%"></div>
-            </div>
-            <div class="mt-8 text-[9px] text-gray-500 text-center leading-tight">
-                TOSS ACCURACY DETERMINES<br>THE FINAL SCORE
-            </div>
-        </div>
-
-        <!-- The Physics Arena (The Pizza) -->
-        <div id="game-stage" class="relative border-4 border-gray-800 rounded-full shadow-[0_0_100px_rgba(255,165,0,0.2)] bg-black/60 overflow-hidden">
-            <!-- Center Crosshair -->
-            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div class="w-full h-px bg-white/5"></div>
-                <div class="h-full w-px bg-white/5"></div>
-            </div>
-        </div>
-
-        <!-- Right Panel: Timer & Score -->
-        <div class="w-48 bg-gray-900/80 p-6 rounded-3xl border-2 border-yellow-500 shadow-2xl flex flex-col items-center">
-            <span class="text-[10px] text-yellow-500 font-bold mb-1 uppercase tracking-widest">Time Left</span>
-            <span id="timer-val" class="pizza-font text-5xl text-red-500">60s</span>
-            
-            <div class="mt-8 flex flex-col items-center w-full">
-                <span class="text-[10px] text-gray-500 font-bold mb-1 uppercase">Total Score</span>
-                <span id="score-val" class="pizza-font text-4xl text-white">0</span>
+        <!-- Left: Phase 1 (Production) -->
+        <div class="w-64 bg-gray-900/80 p-4 rounded-3xl neon-border-blue flex flex-col">
+            <div class="text-center mb-4">
+                <span class="text-[10px] text-blue-400 font-black tracking-widest uppercase">Fase 1: Producción</span>
+                <h3 class="pizza-font text-2xl">THE KITCHEN</h3>
             </div>
             
-            <div class="mt-10 flex flex-col gap-2 w-full">
-                <div class="flex justify-between text-[9px] text-gray-400 uppercase font-black">
-                    <span>ZK Verified</span>
-                    <span class="text-green-500">READY</span>
+            <div id="phase1-container" class="flex-grow bg-black/40 rounded-xl relative overflow-hidden border border-gray-800">
+                <!-- Lanes will be here -->
+            </div>
+
+            <div class="mt-4 space-y-2">
+                <div class="flex justify-between text-[10px] font-bold">
+                    <span>DOUGH PROGRESS</span>
+                    <span id="dough-pct">0%</span>
                 </div>
-                <div class="w-full h-1 bg-green-500/20 rounded-full"></div>
+                <div class="w-full h-3 bg-gray-800 rounded-full overflow-hidden border border-blue-900">
+                    <div id="dough-bar" class="h-full bg-blue-500 shadow-[0_0_10px_#3b82f6]" style="width: 0%"></div>
+                </div>
+                <div class="bg-blue-600/20 py-2 rounded-lg border border-blue-500/30 text-center">
+                    <span class="text-xs font-bold text-blue-200">READY: </span>
+                    <span id="pizza-ready-count" class="pizza-font text-xl text-white">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Center: Phase 2 (Delivery / The Street) -->
+        <div class="w-[500px] bg-gray-900/80 p-4 rounded-3xl neon-border-green flex flex-col">
+            <div class="text-center mb-4">
+                <span class="text-[10px] text-green-400 font-black tracking-widest uppercase">Fase 2: Delivery</span>
+                <h3 class="pizza-font text-2xl">THE STREET</h3>
+            </div>
+            
+            <div id="phase2-container" class="flex-grow bg-black/40 rounded-xl relative overflow-hidden border border-gray-800">
+                <!-- Delivery Arena -->
+            </div>
+
+            <div class="mt-4 flex justify-between items-center bg-green-600/10 p-3 rounded-xl border border-green-500/30">
+                <div class="text-left">
+                    <span class="text-[9px] text-gray-500 font-bold block uppercase">Action</span>
+                    <span class="text-xs font-black text-green-400">[SPACE] TO TOSS</span>
+                </div>
+                <div class="text-right">
+                    <span class="text-[9px] text-gray-500 font-bold block uppercase">Delivered</span>
+                    <span id="delivered-count" class="pizza-font text-2xl text-white">0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Stats -->
+        <div class="w-40 flex flex-col gap-4">
+            <div class="bg-gray-900/80 p-6 rounded-3xl border-2 border-red-500 shadow-xl text-center">
+                <span class="text-[10px] text-red-400 font-bold block mb-1">TIME</span>
+                <span id="timer-val" class="pizza-font text-5xl text-white">60s</span>
+            </div>
+            <div class="bg-gray-900/80 p-6 rounded-3xl border-2 border-yellow-500 shadow-xl text-center flex-grow">
+                <span class="text-[10px] text-yellow-500 font-bold block mb-1 uppercase">Total Score</span>
+                <span id="score-val" class="pizza-font text-4xl text-white">0</span>
+                <div class="mt-6 space-y-4">
+                    <div class="text-[9px] text-gray-500">
+                        <div class="flex justify-between mb-1"><span>ZK PROOF</span><span class="text-green-500">ACTIVE</span></div>
+                        <div class="w-full h-0.5 bg-gray-800"><div class="h-full bg-green-500 w-full animate-pulse"></div></div>
+                    </div>
+                    <div class="text-[9px] text-gray-500">
+                        <div class="flex justify-between mb-1"><span>STELLAR</span><span class="text-blue-500">SYNC</span></div>
+                        <div class="w-full h-0.5 bg-gray-800"><div class="h-full bg-blue-500 w-full"></div></div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
-        // --- Audio Engine ---
+        // --- State ---
+        let doughProgress = 0;
+        let pizzasReady = 0;
+        let deliveredCount = 0;
+        let score = 0;
+        let timeLeft = 60;
+        let isPlaying = false;
+
+        // --- Audio ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSfx(freq, type, dur, vol=0.1) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -92,160 +130,153 @@
             osc.start(); osc.stop(audioCtx.currentTime + dur);
         }
 
-        // --- Game Config ---
-        const LANES = [60, 140, 220, 300];
+        // --- Phaser Phase 1: Production ---
+        const p1Config = {
+            type: Phaser.AUTO,
+            parent: 'phase1-container',
+            width: 256,
+            height: 480,
+            backgroundColor: '#0a0a0a',
+            physics: { default: 'arcade' },
+            scene: { preload: p1Preload, create: p1Create, update: p1Update }
+        };
+
+        const LANES = [40, 100, 160, 220];
         const KEYS = ['A', 'S', 'K', 'L'];
         const COLORS = [0xff4757, 0x2ed573, 0xffa502, 0x5352ed];
         const EMOJIS = ['🍕', '🍄', '🍍', '🌶️'];
+        let p1Notes;
 
-        const config = {
-            type: Phaser.AUTO,
-            parent: 'game-stage',
-            width: 400,
-            height: 400,
-            transparent: true,
-            physics: { default: 'arcade', arcade: { debug: false, gravity: { y: 0 } } },
-            scene: { preload, create, update }
-        };
-
-        const game = new Phaser.Game(config);
-        let ingredients, pizzaBase, score = 0, combo = 1, comboProgress = 0;
-        let isPlaying = false, timeLeft = 60, timerEvent;
-        let activeNotes = [];
-
-        function preload() {}
-
-        function create() {
+        function p1Preload() {}
+        function p1Create() {
             const self = this;
-            
-            // 1. La Pizza Base (Target)
-            pizzaBase = this.add.circle(200, 200, 150, 0x3d2b1f);
-            pizzaBase.setStrokeStyle(10, 0xd4a373);
-            
-            // Añadir un brillo neón a la masa
-            const glow = this.add.circle(200, 200, 155, 0xffa502, 0.05);
-            this.tweens.add({ targets: glow, scale: 1.05, alpha: 0.1, yoyo: true, repeat: -1, duration: 1000 });
-
-            ingredients = this.physics.add.group();
-
-            // 2. Input Setup
-            KEYS.forEach((key, i) => {
-                this.input.keyboard.addKey(key).on('down', () => {
+            const g = this.add.graphics();
+            LANES.forEach((x, i) => {
+                g.lineStyle(1, 0x1a1a1a);
+                g.lineBetween(x, 0, x, 480);
+                this.add.circle(x, 420, 20, 0x000000).setStrokeStyle(2, COLORS[i]);
+                this.input.keyboard.addKey(KEYS[i]).on('down', () => {
                     if(!isPlaying) return;
-                    handleToss.call(self, i);
+                    checkP1Hit.call(self, i);
                 });
             });
-
-            // 3. Spawn Loop (Beat)
-            this.time.addEvent({
-                delay: 700,
-                callback: () => { if(isPlaying) spawnRhythmIndicator.call(self); },
-                loop: true
+            p1Notes = this.physics.add.group();
+            this.time.addEvent({ delay: 600, callback: () => { if(isPlaying) spawnP1Note.call(self); }, loop: true });
+        }
+        function spawnP1Note() {
+            const lane = Phaser.Math.Between(0, 3);
+            const n = this.add.container(LANES[lane], -30);
+            n.add([this.add.circle(0, 0, 18, COLORS[lane]).setStrokeStyle(2, 0xffffff), this.add.text(-10, -10, EMOJIS[lane], {fontSize: '18px'})]);
+            p1Notes.add(n);
+            this.physics.add.existing(n);
+            n.body.setVelocityY(350);
+            n.setData('lane', lane);
+        }
+        function checkP1Hit(lane) {
+            let hit = false;
+            p1Notes.children.iterate(n => {
+                if(!n || n.getData('lane') !== lane) return;
+                const dist = Math.abs(n.y - 420);
+                if(dist < 50) { hit = true; n.destroy(); addDough(dist); }
             });
-
-            // 4. Timer
-            timerEvent = this.time.addEvent({
-                delay: 1000,
-                callback: () => {
-                    if(isPlaying) {
-                        timeLeft--;
-                        document.getElementById('timer-val').innerText = timeLeft + 's';
-                        if(timeLeft <= 0) endGame.call(self);
-                    }
-                },
-                loop: true
-            });
+            if(!hit) playSfx(100, 'sawtooth', 0.1, 0.05);
+        }
+        function p1Update() {
+            if(!isPlaying) return;
+            p1Notes.children.iterate(n => { if(n && n.y > 500) n.destroy(); });
         }
 
-        function spawnRhythmIndicator() {
-            // Un círculo de ritmo que se contrae hacia el centro de la pizza
-            const ring = this.add.circle(200, 200, 180, 0xffffff, 0);
-            ring.setStrokeStyle(2, 0x00ffcc, 0.5);
+        // --- Phaser Phase 2: Delivery ---
+        const p2Config = {
+            type: Phaser.AUTO,
+            parent: 'phase2-container',
+            width: 500,
+            height: 480,
+            backgroundColor: '#0f0f0f',
+            physics: { default: 'arcade' },
+            scene: { create: p2Create, update: p2Update }
+        };
+
+        let customers, flyingPizzas;
+        function p2Create() {
+            const self = this;
+            // Draw counter/street
+            this.add.rectangle(450, 240, 100, 480, 0x1a1a1a); // Door
+            customers = this.physics.add.group();
+            flyingPizzas = this.physics.add.group();
             
-            this.tweens.add({
-                targets: ring,
-                radius: 140,
-                alpha: 1,
-                duration: 600,
-                onComplete: () => {
-                    this.tweens.add({
-                        targets: ring,
-                        radius: 130,
-                        alpha: 0,
-                        duration: 100,
-                        onComplete: () => ring.destroy()
-                    });
-                }
-            });
+            this.time.addEvent({ delay: 2500, callback: () => { if(isPlaying) spawnCustomer.call(self); }, loop: true });
+            
+            this.input.keyboard.addKey('SPACE').on('down', () => { if(isPlaying) tossPizza.call(self); });
+            
+            this.physics.add.overlap(flyingPizzas, customers, deliverSuccess, null, this);
         }
-
-        function handleToss(laneIndex) {
-            // Lógica de Lanzamiento: 
-            // El jugador lanza el ingrediente desde el borde hacia una posición aleatoria en la pizza
-            // La precisión depende de si lo hizo cuando el anillo de ritmo estaba cerca de la masa
-            
-            const startPoints = [
-                {x: 200, y: 450}, // Bot
-                {x: 200, y: -50}, // Top
-                {x: -50, y: 200}, // Left
-                {x: 450, y: 200}  // Right
-            ];
-            
-            const start = startPoints[laneIndex];
-            const targetX = 200 + Phaser.Math.Between(-100, 100);
-            const targetY = 200 + Phaser.Math.Between(-100, 100);
-
-            const ing = this.add.container(start.x, start.y);
-            const circle = this.add.circle(0, 0, 15, COLORS[laneIndex]).setStrokeStyle(2, 0xffffff);
-            const text = this.add.text(-8, -8, EMOJIS[laneIndex], { fontSize: '16px' });
-            ing.add([circle, text]);
-            
-            playSfx(400 + (laneIndex * 100), 'sine', 0.1, 0.05);
-
-            // Trayectoria de lanzamiento (Physics Toss)
-            this.tweens.add({
-                targets: ing,
-                x: targetX,
-                y: targetY,
-                scale: 1.2,
-                duration: 300,
-                ease: 'Back.easeOut',
-                onComplete: () => {
-                    // Al aterrizar, evaluamos si fue en el "beat"
-                    // (Simulamos beat accuracy basándonos en timers internos de Phaser o rings)
-                    processLanding.call(this, ing);
-                }
-            });
+        function spawnCustomer() {
+            const y = Phaser.Math.Between(50, 430);
+            const c = this.add.container(550, y);
+            c.add([this.add.circle(0,0, 25, 0xef4444).setStrokeStyle(2, 0xffffff), this.add.text(-12, -12, '👤', {fontSize: '24px'})]);
+            customers.add(c);
+            this.physics.add.existing(c);
+            c.body.setVelocityX(-80 - (deliveredCount * 2));
         }
-
-        function processLanding(ing) {
-            // Visualmente se queda pegado a la pizza
-            playSfx(600, 'sine', 0.1, 0.1);
-            
-            // Score Logic
-            score += 100 * combo;
-            comboProgress += 10;
-            if(comboProgress >= 100) {
-                combo++; comboProgress = 0;
-                playSfx(1200, 'sine', 0.4, 0.1);
-            }
-            
+        function tossPizza() {
+            if(pizzasReady <= 0) { playSfx(150, 'sawtooth', 0.1, 0.1); return; }
+            pizzasReady--;
             updateUI();
-            this.cameras.main.shake(100, 0.003);
+            playSfx(400, 'sine', 0.1, 0.1);
             
-            // El ingrediente se desvanece lentamente o se acumula
-            this.time.delayedCall(2000, () => {
-                this.tweens.add({ targets: ing, alpha: 0, duration: 500, onComplete: () => ing.destroy() });
+            const p = this.add.text(50, 240, '🍕', {fontSize: '32px'});
+            flyingPizzas.add(p);
+            this.physics.add.existing(p);
+            // Target the closest customer
+            let target = null;
+            let minDist = 1000;
+            customers.children.iterate(c => {
+                if(c.x < minDist) { minDist = c.x; target = c; }
             });
+            
+            if(target) {
+                this.physics.moveToObject(p, target, 400);
+            } else {
+                p.body.setVelocityX(400);
+            }
+        }
+        function deliverSuccess(pizza, customer) {
+            pizza.destroy();
+            customer.destroy();
+            deliveredCount++;
+            score += 500;
+            playSfx(880, 'sine', 0.2, 0.1);
+            updateUI();
+        }
+        function p2Update() {
+            customers.children.iterate(c => { if(c && c.x < -50) c.destroy(); });
+            flyingPizzas.children.iterate(p => { if(p && (p.x > 550 || p.y < -50 || p.y > 550)) p.destroy(); });
+        }
+
+        // --- Global Logic ---
+        const p1Game = new Phaser.Game(p1Config);
+        const p2Game = new Phaser.Game(p2Config);
+
+        function addDough(dist) {
+            let p = dist < 20 ? 25 : (dist < 35 ? 15 : 10);
+            doughProgress += p;
+            if(doughProgress >= 100) {
+                doughProgress = 0;
+                pizzasReady++;
+                playSfx(1200, 'sine', 0.3, 0.1);
+            }
+            score += p;
+            updateUI();
         }
 
         function updateUI() {
+            document.getElementById('dough-bar').style.width = doughProgress + '%';
+            document.getElementById('dough-pct').innerText = Math.floor(doughProgress) + '%';
+            document.getElementById('pizza-ready-count').innerText = pizzasReady;
+            document.getElementById('delivered-count').innerText = deliveredCount;
             document.getElementById('score-val').innerText = score;
-            document.getElementById('combo-val').innerText = 'x' + combo;
-            document.getElementById('combo-bar').style.width = comboProgress + '%';
         }
-
-        function update() {}
 
         function startPizzaHero() {
             document.getElementById('overlay').style.opacity = '0';
@@ -253,26 +284,34 @@
                 document.getElementById('overlay').style.display = 'none';
                 isPlaying = true;
                 if (audioCtx.state === 'suspended') audioCtx.resume();
+                startTimer();
             }, 800);
+        }
+
+        function startTimer() {
+            const t = setInterval(() => {
+                if(!isPlaying) { clearInterval(t); return; }
+                timeLeft--;
+                document.getElementById('timer-val').innerText = timeLeft + 's';
+                if(timeLeft <= 0) endGame();
+            }, 1000);
         }
 
         function endGame() {
             isPlaying = false;
-            playSfx(200, 'sawtooth', 0.5, 0.2);
-            
             const overlay = document.getElementById('overlay');
             const content = document.getElementById('overlay-content');
             content.innerHTML = `
-                <div class="text-9xl mb-4">🏆</div>
+                <div class="text-9xl mb-4">💰</div>
                 <h1 class="pizza-font text-6xl text-yellow-500 mb-2">SHIFT ENDED!</h1>
-                <p class="text-2xl text-white mb-8">FINAL SCORE: <span class="text-blue-400 font-black">${score}</span></p>
+                <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto my-6 text-left">
+                    <div class="text-gray-400">Pizzas Preparadas:</div><div class="font-bold text-blue-400">${deliveredCount + pizzasReady}</div>
+                    <div class="text-gray-400">Pizzas Entregadas:</div><div class="font-bold text-green-400">${deliveredCount}</div>
+                    <div class="text-gray-400 text-xl">TOTAL SCORE:</div><div class="font-black text-2xl text-yellow-500">${score}</div>
+                </div>
                 <div class="flex gap-4 justify-center">
-                    <button onclick="location.reload()" class="bg-gray-700 hover:bg-white hover:text-black text-white font-black px-8 py-3 rounded-full transition-all">
-                        RETRY
-                    </button>
-                    <button onclick="submitZKProof()" class="bg-blue-600 hover:bg-white hover:text-blue-600 text-white font-black px-8 py-3 rounded-full transition-all shadow-[0_0_20px_#2563eb]">
-                        SUBMIT ZK PROOF
-                    </button>
+                    <button onclick="location.reload()" class="bg-gray-700 hover:bg-white hover:text-black text-white font-black px-8 py-3 rounded-full transition-all">REINTENTAR</button>
+                    <button onclick="submitZKProof()" class="bg-blue-600 hover:bg-white hover:text-blue-600 text-white font-black px-8 py-3 rounded-full transition-all shadow-[0_0_20px_#2563eb]">SUBMIT ZK PROOF</button>
                 </div>
             `;
             overlay.style.display = 'flex';
@@ -280,7 +319,7 @@
         }
 
         function submitZKProof() {
-            alert(`🕶️ CONSIGLIERE SLICE:\n\nScore: ${score}\nZK Proof: VALIDATED\nStellar Status: SUCCESS\n\nLa familia no olvida el buen trabajo.`);
+            alert(`🕶️ CONSIGLIERE SLICE:\n\nPrueba ZK Generada:\n- Ingredientes procesados OK\n- Producción validada OK\n- Entregas verificadas OK\n\nStellar Ledger actualizado. ¡La familia está feliz!`);
             location.reload();
         }
     </script>
