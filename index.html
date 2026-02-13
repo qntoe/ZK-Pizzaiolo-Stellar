@@ -3,216 +3,227 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dough Duel: Pizza Battle 🕶️🍕</title>
+    <title>PIZZA HERO: Rhythm Master 🕶️🍕</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #050505; font-family: 'Orbitron', sans-serif; overflow: hidden; }
+        body { background-color: #0a0a0a; font-family: 'Orbitron', sans-serif; overflow: hidden; }
         .pizza-font { font-family: 'Bangers', cursive; }
-        .card { transition: 0.2s; position: relative; }
-        .card:hover { transform: translateY(-10px); filter: brightness(1.2); }
-        .card-active { border-color: #3b82f6; box-shadow: 0 0 20px rgba(59, 130, 246, 0.5); }
-        .dough-bar { transition: width 0.2s linear; }
-        #game-arena canvas { border-radius: 12px; }
+        .lane-glow { box-shadow: 0 0 20px rgba(0, 255, 204, 0.2); }
+        #overlay {
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            transition: 0.8s;
+        }
+        .hit-flash { animation: flash 0.1s; }
+        @keyframes flash { from { background: white; } to { background: transparent; } }
     </style>
 </head>
 <body class="flex flex-col items-center justify-center h-screen text-white select-none">
 
-    <!-- Scoreboard Neón -->
-    <div class="absolute top-6 w-full flex justify-between px-20 z-10">
-        <div class="flex flex-col items-center">
-            <div class="bg-blue-900/80 px-6 py-2 rounded-lg border-2 border-blue-400 shadow-[0_0_15px_#3b82f6]">
-                <span class="pizza-font text-3xl tracking-widest text-blue-200">BLUE CLAN</span>
-            </div>
-            <div id="blue-hp" class="mt-2 text-blue-400 font-bold text-sm">HP: 100%</div>
-        </div>
-        <div class="flex flex-col items-center">
-            <div class="bg-red-900/80 px-6 py-2 rounded-lg border-2 border-red-500 shadow-[0_0_15px_#ef4444]">
-                <span class="pizza-font text-3xl tracking-widest text-red-200">RED MAFIA</span>
-            </div>
-            <div id="red-hp" class="mt-2 text-red-400 font-bold text-sm">HP: 100%</div>
-        </div>
+    <!-- Start Overlay -->
+    <div id="overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center">
+        <div class="text-9xl mb-4 animate-bounce">🍕</div>
+        <h1 class="pizza-font text-8xl text-yellow-500 tracking-widest drop-shadow-[0_0_20px_#f59e0b]">PIZZA HERO</h1>
+        <p class="text-blue-400 font-bold tracking-[0.3em] mb-10">THE CONSIGLIERE'S RHYTHM</p>
+        <button onclick="startPizzaHero()" class="bg-yellow-500 hover:bg-white hover:text-yellow-600 text-black font-black px-12 py-4 rounded-full text-2xl transition-all transform hover:scale-110 shadow-[0_0_30px_#f59e0b]">
+            START BAKE
+        </button>
     </div>
 
-    <!-- Arena de Combate -->
-    <div id="game-arena" class="border-4 border-gray-800 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden"></div>
-
-    <!-- UI Inferior (Deck & Dough) -->
-    <div class="mt-6 w-[500px] bg-gray-900/90 backdrop-blur-md p-6 rounded-3xl border-2 border-gray-700 shadow-2xl relative">
-        <!-- Dough Counter -->
-        <div class="absolute -top-6 left-1/2 -translate-x-1/2 flex flex-col items-center">
-            <div class="bg-blue-600 px-5 py-1 rounded-full border-2 border-white shadow-lg flex items-center gap-2">
-                <span class="text-xs font-black">DOUGH</span>
-                <span id="dough-val" class="text-xl font-black">5</span>
-            </div>
-            <div class="w-64 h-3 bg-gray-800 rounded-full mt-2 border border-blue-400/30 p-0.5">
-                <div id="dough-progress" class="dough-bar h-full bg-blue-400 rounded-full shadow-[0_0_10px_#60a5fa]" style="width: 50%;"></div>
+    <!-- Main Game Section -->
+    <div class="flex gap-10 items-start">
+        
+        <!-- Left Stats -->
+        <div class="w-48 bg-gray-900/80 p-6 rounded-3xl border-2 border-blue-500 shadow-2xl flex flex-col items-center">
+            <span class="text-xs text-blue-400 font-bold mb-1">COMBO</span>
+            <span id="combo-val" class="pizza-font text-6xl text-white">x1</span>
+            <div class="w-full h-2 bg-gray-800 rounded-full mt-4 overflow-hidden">
+                <div id="combo-bar" class="h-full bg-blue-500" style="width: 0%"></div>
             </div>
         </div>
 
-        <!-- Cards Deck -->
-        <div class="flex justify-between gap-3 mt-4">
-            <!-- Card Template -->
-            <div class="card w-28 h-40 bg-gradient-to-b from-gray-800 to-gray-900 rounded-xl border-2 border-yellow-600 p-2 flex flex-col items-center cursor-pointer" onclick="playCard('PEP')">
-                <div class="absolute -top-2 -right-2 bg-blue-600 w-8 h-8 rounded-full border-2 border-white flex items-center justify-center font-bold shadow-lg">3</div>
-                <div class="text-5xl mt-2 drop-shadow-[0_0_10px_rgba(255,165,0,0.5)]">🍕</div>
-                <div class="mt-4 font-black text-[10px] text-yellow-500 tracking-tighter uppercase">Pepperoni Tank</div>
-                <div class="text-[8px] text-gray-500 mt-1">HIGH HP / SLOW</div>
-            </div>
+        <!-- The Game Stage (Lanes) -->
+        <div id="game-stage" class="relative border-x-4 border-gray-800 bg-black/40 shadow-[0_0_100px_rgba(0,0,0,1)]">
+            <!-- Hit line visual indicator -->
+            <div class="absolute bottom-[80px] w-full h-1 bg-yellow-500/30"></div>
+        </div>
 
-            <div class="card w-28 h-40 bg-gradient-to-b from-gray-800 to-gray-900 rounded-xl border-2 border-green-600 p-2 flex flex-col items-center cursor-pointer" onclick="playCard('MUSH')">
-                <div class="absolute -top-2 -right-2 bg-blue-600 w-8 h-8 rounded-full border-2 border-white flex items-center justify-center font-bold shadow-lg">2</div>
-                <div class="text-5xl mt-2 drop-shadow-[0_0_10px_rgba(46,213,115,0.5)]">🍄</div>
-                <div class="mt-4 font-black text-[10px] text-green-500 tracking-tighter uppercase">Mush Assassin</div>
-                <div class="text-[8px] text-gray-500 mt-1">FAST / HIGH DMG</div>
-            </div>
-
-            <div class="card w-28 h-40 bg-gradient-to-b from-gray-800 to-gray-900 rounded-xl border-2 border-red-600 p-2 flex flex-col items-center cursor-pointer" onclick="playCard('CHILLI')">
-                <div class="absolute -top-2 -right-2 bg-blue-600 w-8 h-8 rounded-full border-2 border-white flex items-center justify-center font-bold shadow-lg">4</div>
-                <div class="text-5xl mt-2 drop-shadow-[0_0_10px_rgba(255,71,87,0.5)]">🌶️</div>
-                <div class="mt-4 font-black text-[10px] text-red-500 tracking-tighter uppercase">Chilli Flare</div>
-                <div class="text-[8px] text-gray-500 mt-1">AOE SPLASH</div>
-            </div>
-
-            <div class="card w-28 h-40 bg-gradient-to-b from-gray-800 to-gray-900 rounded-xl border-2 border-purple-600 p-2 flex flex-col items-center cursor-pointer" onclick="playCard('PINE')">
-                <div class="absolute -top-2 -right-2 bg-blue-600 w-8 h-8 rounded-full border-2 border-white flex items-center justify-center font-bold shadow-lg">3</div>
-                <div class="text-5xl mt-2 drop-shadow-[0_0_10px_rgba(83,82,237,0.5)]">🍍</div>
-                <div class="mt-4 font-black text-[10px] text-purple-500 tracking-tighter uppercase">Ananá Sniper</div>
-                <div class="text-[8px] text-gray-500 mt-1">RANGED ATTACK</div>
+        <!-- Right Scoreboard -->
+        <div class="w-48 bg-gray-900/80 p-6 rounded-3xl border-2 border-yellow-500 shadow-2xl flex flex-col items-center">
+            <span class="text-xs text-yellow-500 font-bold mb-1">SCORE</span>
+            <span id="score-val" class="pizza-font text-4xl text-white">0</span>
+            <div class="mt-10 flex flex-col gap-2 w-full">
+                <div class="flex justify-between text-[10px] text-gray-400 uppercase font-black">
+                    <span>ZK Verified</span>
+                    <span class="text-green-500">ON</span>
+                </div>
+                <div class="w-full h-1 bg-green-500/20 rounded-full"></div>
             </div>
         </div>
     </div>
 
-    <!-- ZK Verifier Console -->
-    <div id="zk-log" class="mt-4 font-mono text-[9px] text-blue-400 bg-blue-900/20 px-4 py-2 rounded-lg border border-blue-500/30">
-        [SYSTEM] ZK PROOF ENGINE READY | NOIR v1.0 | WAITING FOR CARD PLAY...
+    <!-- Bottom Controls Hint -->
+    <div class="mt-10 flex gap-4">
+        <div class="flex flex-col items-center gap-2">
+            <kbd class="px-4 py-2 bg-gray-800 rounded-lg border-b-4 border-gray-950 font-bold text-xl">A</kbd>
+            <span class="text-[10px] text-gray-500">PEPPERONI</span>
+        </div>
+        <div class="flex flex-col items-center gap-2">
+            <kbd class="px-4 py-2 bg-gray-800 rounded-lg border-b-4 border-gray-950 font-bold text-xl">S</kbd>
+            <span class="text-[10px] text-gray-500">MUSHROOM</span>
+        </div>
+        <div class="flex flex-col items-center gap-2">
+            <kbd class="px-4 py-2 bg-gray-800 rounded-lg border-b-4 border-gray-950 font-bold text-xl">K</kbd>
+            <span class="text-[10px] text-gray-500">PINEAPPLE</span>
+        </div>
+        <div class="flex flex-col items-center gap-2">
+            <kbd class="px-4 py-2 bg-gray-800 rounded-lg border-b-4 border-gray-950 font-bold text-xl">L</kbd>
+            <span class="text-[10px] text-gray-500">CHILLI</span>
+        </div>
     </div>
 
     <script>
-        let dough = 5;
-        let blueHP = 100;
-        let redHP = 100;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSfx(freq, type, dur, vol=0.1) {
+            const osc = audioCtx.createOscillator();
+            const g = audioCtx.createGain();
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            g.gain.setValueAtTime(vol, audioCtx.currentTime);
+            g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + dur);
+            osc.connect(g); g.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + dur);
+        }
+
+        const LANES = [60, 140, 220, 300];
+        const KEYS = ['A', 'S', 'K', 'L'];
+        const COLORS = [0xff4757, 0x2ed573, 0xffa502, 0x5352ed];
+        const EMOJIS = ['🍕', '🍄', '🍍', '🌶️'];
 
         const config = {
             type: Phaser.AUTO,
-            parent: 'game-arena',
-            width: 450,
-            height: 650,
-            backgroundColor: '#1a1c2c',
+            parent: 'game-stage',
+            width: 360,
+            height: 600,
+            backgroundColor: '#0a0a0a',
             physics: { default: 'arcade', arcade: { debug: false } },
-            scene: { preload: preload, create: create, update: update }
+            scene: { preload, create, update }
         };
 
         const game = new Phaser.Game(config);
-        let playerUnits, enemyUnits;
+        let notes, score = 0, combo = 1, comboProgress = 0, isPlaying = false;
+        let pads = [];
 
-        function preload() {
-            // Unidades con estilo 
-        }
+        function preload() {}
 
         function create() {
-            const scene = this;
+            const self = this;
             
-            // Arena Graphics
-            const graphics = this.add.graphics();
-            graphics.lineStyle(2, 0x252a41);
-            for(let i=0; i<450; i+=50) graphics.lineBetween(i, 0, i, 650);
-            for(let i=0; i<650; i+=50) graphics.lineBetween(0, i, 450, i);
+            // Draw Lanes
+            const g = this.add.graphics();
+            LANES.forEach((x, i) => {
+                g.lineStyle(1, 0x1a1a1a);
+                g.lineBetween(x - 40, 0, x - 40, 600);
+                if(i === 3) g.lineBetween(x + 40, 0, x + 40, 600);
+                
+                // Hit Pad
+                const pad = this.add.circle(x, 520, 30, 0x000000).setStrokeStyle(3, COLORS[i]);
+                pads.push(pad);
 
-            // Towers
-            this.enemyTower = this.add.circle(225, 80, 50, 0xef4444, 0.2).setStrokeStyle(4, 0xef4444);
-            this.add.text(205, 70, "🍕", { fontSize: '40px' });
-
-            this.playerTower = this.add.circle(225, 570, 50, 0x3b82f6, 0.2).setStrokeStyle(4, 0x3b82f6);
-            this.add.text(205, 550, "🏠", { fontSize: '40px' });
-
-            playerUnits = this.physics.add.group();
-            enemyUnits = this.physics.add.group();
-
-            // AI Logic
-            this.time.addEvent({
-                delay: 4000,
-                callback: spawnEnemy,
-                callbackScope: this,
-                loop: true
+                // Input handling
+                this.input.keyboard.addKey(KEYS[i]).on('down', () => {
+                    if(!isPlaying) return;
+                    checkHit.call(self, i);
+                    pad.setFillStyle(COLORS[i], 0.3);
+                    self.time.delayedCall(100, () => pad.setFillStyle(0, 0));
+                });
             });
 
-            // Collisions
-            this.physics.add.overlap(playerUnits, enemyUnits, battle, null, this);
+            notes = this.physics.add.group();
+
+            // Spawn timer
+            this.time.addEvent({
+                delay: 600,
+                callback: () => { if(isPlaying) spawnNote.call(self); },
+                loop: true
+            });
+        }
+
+        function spawnNote() {
+            const lane = Phaser.Math.Between(0, 3);
+            const container = this.add.container(LANES[lane], -50);
+            const circle = this.add.circle(0, 0, 25, COLORS[lane]).setStrokeStyle(3, 0xffffff);
+            const text = this.add.text(-12, -12, EMOJIS[lane], { fontSize: '24px' });
+            container.add([circle, text]);
             
-            // Dough Regen
-            setInterval(() => {
-                if(dough < 10) { dough += 0.2; updateUI(); }
-            }, 500);
+            notes.add(container);
+            this.physics.add.existing(container);
+            container.body.setVelocityY(450 + (score/1000) * 10);
+            container.setData('lane', lane);
         }
 
-        function spawnEnemy() {
-            const x = Phaser.Math.Between(100, 350);
-            const enemy = this.add.circle(x, 150, 20, 0xef4444);
-            enemy.setStrokeStyle(3, 0xffffff);
-            enemyUnits.add(enemy);
-            enemy.body.setVelocityY(40);
-        }
-
-        function playCard(type) {
-            const costs = { PEP: 3, MUSH: 2, CHILLI: 4, PINE: 3 };
-            if (dough >= costs[type]) {
-                dough -= costs[type];
+        function checkHit(lane) {
+            let hit = false;
+            notes.children.iterate((n) => {
+                if(!n || n.getData('lane') !== lane) return;
+                const dist = Math.abs(n.y - 520);
+                if(dist < 70) {
+                    hit = true;
+                    processHit.call(this, n, dist);
+                }
+            });
+            if(!hit) {
+                combo = 1; comboProgress = 0;
                 updateUI();
-                spawnUnit(type);
-                logZK(`[ZK] PROVING PLAY: ${type} | COST: ${costs[type]} | STATUS: OK`);
-            } else {
-                logZK(`[ZK] ERROR: INSUFFICIENT DOUGH FOR ${type}`, true);
+                playSfx(100, 'sawtooth', 0.1, 0.05);
             }
         }
 
-        function spawnUnit(type) {
-            const scene = game.scene.scenes[0];
-            const x = Phaser.Math.Between(100, 350);
-            const emojis = { PEP: "🍕", MUSH: "🍄", CHILLI: "🌶️", PINE: "🍍" };
-            
-            const container = scene.add.container(x, 500);
-            const circle = scene.add.circle(0, 0, 22, 0x3b82f6).setStrokeStyle(2, 0xffffff);
-            const text = scene.add.text(-15, -15, emojis[type], { fontSize: '30px' });
-            
-            container.add([circle, text]);
-            scene.physics.add.existing(container);
-            playerUnits.add(container);
-            container.body.setVelocityY(-60);
-        }
+        function processHit(n, dist) {
+            n.destroy();
+            let p = 0, freq = 440;
+            if(dist < 20) { p = 200; freq = 880; }
+            else if(dist < 45) { p = 100; freq = 660; }
+            else { p = 50; freq = 440; }
 
-        function battle(p, e) {
-            // Efecto de explosión simple
-            p.destroy();
-            e.destroy();
-            logZK("[BATTLE] TRADING UNITS...");
+            score += p * combo;
+            comboProgress += 10;
+            if(comboProgress >= 100) {
+                combo++;
+                comboProgress = 0;
+                playSfx(1200, 'sine', 0.3, 0.1);
+            }
+            
+            playSfx(freq, 'sine', 0.2);
+            updateUI();
+            this.cameras.main.shake(100, 0.005);
         }
 
         function updateUI() {
-            document.getElementById('dough-progress').style.width = (dough * 10) + '%';
-            document.getElementById('dough-val').innerText = Math.floor(dough);
-        }
-
-        function logZK(msg, isError = false) {
-            const log = document.getElementById('zk-log');
-            log.innerHTML = `<span class="${isError ? 'text-red-500' : 'text-blue-400'}">${msg}</span><br>${log.innerHTML}`;
+            document.getElementById('score-val').innerText = score;
+            document.getElementById('combo-val').innerText = 'x' + combo;
+            document.getElementById('combo-bar').style.width = comboProgress + '%';
         }
 
         function update() {
-            playerUnits.children.iterate(u => {
-                if(u && u.y < 150) { 
-                    u.destroy(); redHP -= 5; 
-                    document.getElementById('red-hp').innerText = `HP: ${redHP}%`;
-                    if(redHP <= 0) alert("MAFIA DEFEATED! STELLAR VICTORY!");
+            if(!isPlaying) return;
+            notes.children.iterate((n) => {
+                if(n && n.y > 650) {
+                    n.destroy();
+                    combo = 1; comboProgress = 0;
+                    updateUI();
+                    playSfx(80, 'square', 0.1, 0.05);
                 }
             });
-            enemyUnits.children.iterate(u => {
-                if(u && u.y > 500) { 
-                    u.destroy(); blueHP -= 5; 
-                    document.getElementById('blue-hp').innerText = `HP: ${blueHP}%`;
-                }
-            });
+        }
+
+        function startPizzaHero() {
+            document.getElementById('overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('overlay').style.display = 'none';
+                isPlaying = true;
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            }, 800);
         }
     </script>
 </body>
