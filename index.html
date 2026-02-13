@@ -33,7 +33,7 @@
                 </div>
                 <div class="bg-purple-900/20 p-4 rounded-xl border border-purple-500/30">
                     <span class="text-purple-400 font-black block mb-2 underline text-xs">PHASE 2: THE TABLES</span>
-                    <p class="text-[10px] text-gray-400 leading-tight">Usa el mouse o dedo: <span class="text-white font-bold">Haz CLICK y ARRASTRA</span> hacia arriba para lanzar la pizza a las mesas.</p>
+                    <p class="text-[10px] text-gray-400 leading-tight">Usa el mouse o dedo: <span class="text-white font-bold">Haz CLICK y ARRASTRA</span> hacia las mesas para lanzar la pizza.</p>
                 </div>
             </div>
 
@@ -282,7 +282,10 @@
             const table = sceneInstance.add.container(x, y);
             const wood = sceneInstance.add.circle(0, 0, 40, 0x5d4037).setStrokeStyle(4, 0xffffff);
             const icon = sceneInstance.add.text(-15, -15, "👤", { fontSize: '30px' });
-            table.add([wood, icon]);
+            const happy = sceneInstance.add.text(-15, -50, "😋", { fontSize: '30px' }).setAlpha(0);
+            
+            table.add([wood, icon, happy]);
+            table.setData('isServed', false);
             tables.add(table);
             sceneInstance.physics.add.existing(table);
             table.body.setCircle(40, -40, -40);
@@ -303,8 +306,6 @@
             if(!activePizza) return;
             trajectoryLine.clear();
             trajectoryLine.lineStyle(3, 0x00ffcc, 0.5);
-            
-            // Aiming line
             trajectoryLine.beginPath();
             trajectoryLine.moveTo(400, 550);
             const dx = pointer.x - dragStartX;
@@ -316,42 +317,53 @@
         function endToss(pointer) {
             if(!activePizza) return;
             trajectoryLine.clear();
-            
             const dx = pointer.x - dragStartX;
             const dy = pointer.y - dragStartY;
-            
-            // Requerir un mínimo de movimiento para lanzar
-            if(Math.abs(dx) < 10 && Math.abs(dy) < 10) {
-                activePizza.destroy();
-                activePizza = null;
-                return;
-            }
+            if(Math.abs(dx) < 10 && Math.abs(dy) < 10) { activePizza.destroy(); activePizza = null; return; }
 
             pizzasCreated--;
             updateUI();
             
             sceneInstance.physics.add.existing(activePizza);
-            // Multiplicador de fuerza
             const power = 3.5;
             activePizza.body.setVelocity(dx * power, dy * power);
             activePizza.body.setDrag(50);
             activePizza.body.setCircle(25, -25, -25);
             deliveredPizzas.add(activePizza);
             
-            sceneInstance.tweens.add({ targets: activePizza, scale: 1.5, yoyo: true, duration: 400 });
+            sceneInstance.tweens.add({ targets: activePizza, scale: 2, yoyo: true, duration: 400 });
             playSfx(600, 'sine', 0.2, 0.1);
             activePizza = null;
         }
 
         function handleDelivery(pizza, table) {
+            if(table.getData('isServed')) return;
             pizza.destroy();
-            table.destroy();
+            table.setData('isServed', true);
+            table.body.setEnable(false);
+
             pizzasDelivered++;
             score += 1000;
             playSfx(880, 'sine', 0.3, 0.1);
             sceneInstance.cameras.main.shake(100, 0.005);
             updateUI();
-            setTimeout(spawnTable, 2000);
+
+            const wood = table.list[0];
+            const happy = table.list[2];
+            wood.setStrokeStyle(6, 0x22c55e);
+            happy.setAlpha(1);
+
+            const p = sceneInstance.add.text(table.x - 15, table.y - 15, "🍕", { fontSize: '30px' });
+            
+            sceneInstance.tweens.add({
+                targets: [table, p],
+                x: -150,
+                duration: 2500,
+                ease: 'Power2',
+                onComplete: () => { table.destroy(); p.destroy(); if(currentPhase === 2) spawnTable(); }
+            });
+
+            sceneInstance.tweens.add({ targets: [table, p], y: table.y - 40, duration: 200, yoyo: true, repeat: 1 });
         }
 
         function startTimer() {
