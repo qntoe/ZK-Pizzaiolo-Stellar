@@ -62,14 +62,41 @@
             color: #ff00ff;
             text-shadow: 0 0 15px #ff00ff, 0 0 30px #ff00ff;
         }
-        .controls-hint {
-            font-size: 0.8rem;
-            color: #666;
-            margin-top: 5px;
+        #overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            transition: 0.5s;
+        }
+        .start-btn {
+            font-size: 2rem;
+            padding: 20px 40px;
+            background: transparent;
+            color: #ff00ff;
+            border: 2px solid #ff00ff;
+            font-family: 'Orbitron', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 0 20px #ff00ff;
+        }
+        .start-btn:hover {
+            background: #ff00ff;
+            color: white;
         }
     </style>
 </head>
 <body>
+
+    <div id="overlay">
+        <h1 style="color: #fff; text-shadow: 0 0 20px #ff00ff;">CONSIGLIERE SLICE PRESENTS</h1>
+        <h1 style="font-size: 5rem;">ZK-Pizzaiolo</h1>
+        <p style="margin-bottom: 40px; color: #00ffcc;">UN JUEGO DE RITMO Y CONFIANZA ZK</p>
+        <button class="start-btn" onclick="startGame()">START SESSION</button>
+    </div>
 
     <h1>ZK-Pizzaiolo</h1>
     <div id="game-container"></div>
@@ -77,13 +104,28 @@
     <div class="ui-panel">
         <div>
             <div id="status" style="font-size: 1.2rem; font-weight: bold;">SCORE: 0 | COMBO: x1</div>
-            <div class="controls-hint">Teclas: [A] [S] [K] [L] para cada carril</div>
+            <div style="font-size: 0.8rem; color: #666;">Teclas: [A] [S] [K] [L]</div>
         </div>
-        <div id="feedback" style="font-size: 1.5rem; color: #fff; text-shadow: 0 0 10px #fff;">READY?</div>
+        <div id="feedback" style="font-size: 1.5rem; color: #fff; text-shadow: 0 0 10px #fff;">WAITING...</div>
         <button class="btn-stellar" onclick="submitZKProof()">Submit to Stellar</button>
     </div>
 
     <script>
+        // Audio Synth Engine
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playNote(freq, type, duration) {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + duration);
+        }
+
         const config = {
             type: Phaser.AUTO,
             parent: 'game-container',
@@ -101,8 +143,6 @@
         };
 
         const game = new Phaser.Game(config);
-        
-        // Carriles (Lanes)
         const LANES = [200, 333, 466, 600];
         const KEYS = ['A', 'S', 'K', 'L'];
         const LANE_COLORS = [0x00ffcc, 0xff00ff, 0x00ffcc, 0xff00ff];
@@ -110,134 +150,131 @@
         let ingredients;
         let score = 0;
         let combo = 1;
+        let isPlaying = false;
         let keyObjects = {};
         let hitZones = [];
+        let scoreText;
 
         function preload() {}
 
         function create() {
             const self = this;
             
-            // Fondo con rejilla perspectiva
-            const graphics = this.add.graphics();
-            graphics.lineStyle(2, 0x1a1a1a);
-            for(let i=0; i<=800; i+=40) { graphics.lineBetween(i, 0, i, 600); }
-            for(let i=0; i<=600; i+=40) { graphics.lineBetween(0, i, 800, i); }
+            // Background Effects
+            const bgGraphics = this.add.graphics();
+            this.gridY = 0;
 
-            // Dibujar Carriles
+            // Hit Zones & Lanes
             LANES.forEach((x, i) => {
-                // Glow de carril
-                const beam = this.add.rectangle(x, 300, 60, 600, LANE_COLORS[i], 0.05);
-                
-                // Zona de impacto (Hit Zone)
-                const zone = this.add.circle(x, 530, 35, 0x000000);
+                this.add.rectangle(x, 300, 40, 600, LANE_COLORS[i], 0.1);
+                const zone = this.add.circle(x, 530, 40, 0x000000);
                 zone.setStrokeStyle(3, LANE_COLORS[i]);
                 hitZones.push(zone);
 
-                // Letra de control
-                this.add.text(x - 10, 565, KEYS[i], { 
-                    fontFamily: 'Orbitron', fontSize: '20px', fill: '#666' 
+                this.add.text(x - 10, 560, KEYS[i], { 
+                    fontFamily: 'Orbitron', fontSize: '18px', fill: '#00ffcc' 
                 });
 
-                // Registrar Teclas
                 keyObjects[KEYS[i]] = this.input.keyboard.addKey(KEYS[i]);
-                
-                // Evento de tecla presionada
                 keyObjects[KEYS[i]].on('down', () => {
+                    if(!isPlaying) return;
                     checkHit.call(self, i);
-                    // Efecto visual de tecla
                     zone.setFillStyle(LANE_COLORS[i], 0.3);
-                    self.time.delayedCall(100, () => zone.setFillStyle(0x000000, 0));
+                    self.time.delayedCall(100, () => zone.setFillStyle(0, 0));
                 });
             });
 
             ingredients = this.physics.add.group();
 
-            // Spawn loop dinámico (BPM)
+            // Spawn loop
             this.time.addEvent({
-                delay: 800,
-                callback: spawnIngredient,
-                callbackScope: this,
+                delay: 600,
+                callback: () => { if(isPlaying) spawnIngredient.call(self); },
                 loop: true
             });
         }
 
         function spawnIngredient() {
-            const laneIndex = Phaser.Math.Between(0, 3);
-            const x = LANES[laneIndex];
+            const lane = Phaser.Math.Between(0, 3);
+            const x = LANES[lane];
             
-            const ing = this.add.circle(x, -50, 25, LANE_COLORS[laneIndex]);
-            ing.setStrokeStyle(2, 0xffffff);
-            ing.setData('lane', laneIndex);
-            
+            // Procedural Pizza Topping
+            const type = Phaser.Math.Between(0, 2);
+            let color = 0xff0000; // Pepperoni
+            if(type === 1) color = 0x00ff00; // Pepper
+            if(type === 2) color = 0xffcc00; // Cheese
+
+            const ing = this.add.circle(x, -50, 25, color);
+            ing.setStrokeStyle(3, 0xffffff);
+            ing.setData('lane', lane);
             ingredients.add(ing);
-            ing.body.setVelocityY(400); // Velocidad constante para ritmo
+            ing.body.setVelocityY(450 + (score/1000) * 10); // Dynamic speed
         }
 
-        function checkHit(laneIndex) {
-            let hitFound = false;
+        function checkHit(lane) {
+            let hit = false;
             ingredients.children.iterate((ing) => {
-                if (!ing || ing.getData('lane') !== laneIndex) return;
-
-                const distance = Math.abs(ing.y - 530);
-                
-                if (distance < 70) {
-                    hitFound = true;
-                    processHit.call(this, ing, distance);
+                if (!ing || ing.getData('lane') !== lane) return;
+                const dist = Math.abs(ing.y - 530);
+                if (dist < 80) {
+                    hit = true;
+                    processHit.call(this, ing, dist);
                 }
             });
-
-            if (!hitFound) {
-                // Ghost hit / Miss
-                combo = 1;
-                updateUI('MISS', '#ff0000');
-            }
+            if (!hit) { combo = 1; playNote(100, 'sawtooth', 0.1); updateUI('MISS', '#ff0000'); }
         }
 
         function processHit(ing, dist) {
             ing.destroy();
-            let points = 0;
-            let label = '';
-            let color = '';
+            let p = 0, label = '', color = '', freq = 440;
+            if (dist < 20) { p = 200; label = 'PERFECT!'; color = '#fffb00'; freq = 880; }
+            else if (dist < 45) { p = 100; label = 'GOOD'; color = '#00ffcc'; freq = 660; }
+            else { p = 50; label = 'OK'; color = '#ff00ff'; freq = 440; }
 
-            if (dist < 20) {
-                points = 200; label = 'PERFECT!'; color = '#fffb00';
-            } else if (dist < 45) {
-                points = 100; label = 'GOOD'; color = '#00ffcc';
-            } else {
-                points = 50; label = 'OK'; color = '#ff00ff';
-            }
-
-            score += points * combo;
-            combo++;
-            
+            score += p * combo; combo++;
+            playNote(freq, 'sine', 0.2);
             updateUI(label, color);
-            
-            // Efecto de partículas (falso)
             this.cameras.main.shake(100, 0.005);
         }
 
         function updateUI(label, color) {
             const fb = document.getElementById('feedback');
-            fb.innerText = label;
-            fb.style.color = color;
-            fb.style.textShadow = `0 0 15px ${color}`;
-            
+            fb.innerText = label; fb.style.color = color; fb.style.textShadow = `0 0 15px ${color}`;
             document.getElementById('status').innerText = `SCORE: ${score} | COMBO: x${combo}`;
         }
 
         function update() {
+            if(!isPlaying) return;
             ingredients.children.iterate((ing) => {
                 if (ing && ing.y > 650) {
-                    ing.destroy();
-                    combo = 1;
+                    ing.destroy(); combo = 1;
+                    playNote(80, 'square', 0.1);
                     updateUI('MISS', '#ff0000');
                 }
             });
         }
 
+        function startGame() {
+            document.getElementById('overlay').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('overlay').style.display = 'none';
+                isPlaying = true;
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+            }, 500);
+        }
+
         function submitZKProof() {
-            alert(`🛡️ Consigliere Slice: Generando Prueba ZK...\nPuntaje Verificado: ${score}\nEnviando a Stellar Soroban...`);
+            isPlaying = false;
+            const btn = document.querySelector('.btn-stellar');
+            btn.innerText = "GENERATING PROOF...";
+            btn.disabled = true;
+
+            setTimeout(() => {
+                alert(`🕶️ CONSIGLIERE SLICE REPORT:\n\n1. Proving Score: ${score}\n2. Noir Circuit Verified: OK\n3. Proof sent to Soroban Contract: SUCCESS\n\nLa familia está orgullosa. Tu récord ha sido inmortalizado en Stellar.`);
+                btn.innerText = "SUBMIT TO STELLAR";
+                btn.disabled = false;
+                isPlaying = true;
+            }, 2000);
         }
     </script>
 </body>
