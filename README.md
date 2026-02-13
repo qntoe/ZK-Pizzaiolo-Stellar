@@ -1,16 +1,15 @@
-# 🎮 ZK-Pizzaiolo: Rhythm & Physics Game
+# ⚔️ Dough Duel: ZK-Pizza Battle
 
-## Game Concept
-Un juego de ritmo donde el jugador debe "preparar" pizzas siguiendo el compás. La física entra en juego al lanzar ingredientes.
-La prueba ZK (Noir) se usa para validar que el jugador obtuvo un puntaje específico sin revelar la secuencia exacta de movimientos, permitiendo un leaderboard verificado en Stellar (Soroban).
+## Game Concept: "The Pizza War"
+Un juego de estrategia en tiempo real (RTS) inspirado en Clash Royale donde los jugadores usan cartas de ingredientes para invocar unidades en una arena neón. El objetivo es destruir el Horno del oponente enviando oleadas de ingredientes tácticos.
 
 ## Tech Stack
-- **Game Engine:** Unity / Web (TBD)
-- **ZK Logic:** Noir (Circuitos en `./circuits`)
-- **Blockchain:** Stellar (Contratos en `./contracts`)
-- **Assets:** AI Generated (Nano Banana Pro)
+- **Frontend UI:** React / Tailwind CSS (Styling de alta gama).
+- **Game Engine:** Phaser.js (Físicas y lógica de batalla).
+- **ZK Logic:** Noir (Circuitos en `./circuits` para validar jugadas).
+- **Blockchain:** Stellar (Contratos en `./contracts` para leaderboards y assets).
 
 ## Directory Structure
 - `/circuits`: Noir circuits for ZK Proofs.
 - `/contracts`: Soroban smart contracts.
-- `/assets`: Game assets (pizzas, toppings, sound).
+- `index.html`: Main game entry (Dough Duel MVP).
