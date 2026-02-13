@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PIZZA HERO: Phase 2 Debug 🕶️🍕</title>
+    <title>PIZZA HERO: Phase 2 Logic Polish 🕶️🍕</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stellar-freighter-api/1.1.2/index.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Bangers&family=Orbitron:wght@400;900&display=swap" rel="stylesheet">
     <style>
         body { background-color: #050505; font-family: 'Orbitron', sans-serif; overflow: hidden; user-select: none; touch-action: none; }
@@ -17,43 +16,42 @@
 </head>
 <body class="flex flex-col items-center justify-center h-screen text-white">
 
-    <!-- Debug Overlay -->
+    <!-- Start/End Overlay -->
     <div id="overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center text-center px-10 bg-black/90">
-        <h1 class="pizza-font text-6xl text-yellow-500 mb-4">PHASE 2: DEBUG MODE</h1>
-        <p class="text-blue-400 font-bold mb-8">FREE 10 PIZZAS ENABLED | FREIGHTER INTEGRATION</p>
-        
-        <div id="wallet-status" class="bg-gray-800 p-4 rounded-xl border border-gray-600 mb-8 w-80 text-xs">
-            WALLET: NOT CONNECTED
-        </div>
+        <div id="overlay-content">
+            <h1 class="pizza-font text-8xl text-yellow-500 mb-4 tracking-tighter">PIZZA HERO</h1>
+            <p class="text-blue-400 font-bold tracking-[0.2em] mb-10">LOGIC TEST: PHASE 2 DELIVERY</p>
+            
+            <div class="bg-gray-900/80 p-6 rounded-2xl border border-gray-700 mb-10 text-sm text-gray-300">
+                <p>1. 10 Pizzas cargadas por defecto.</p>
+                <p>2. Haz <b>CLICK/TOUCH y ARRASTRA</b> para apuntar.</p>
+                <p>3. Suelta para lanzar al cliente.</p>
+            </div>
 
-        <div class="flex gap-4">
-            <button onclick="connectWallet()" class="bg-blue-600 hover:bg-white hover:text-blue-600 text-white font-black px-8 py-3 rounded-full transition-all">
-                CONNECT FREIGHTER
-            </button>
-            <button id="start-btn" disabled onclick="startPhase2()" class="bg-yellow-500 disabled:opacity-30 disabled:cursor-not-allowed text-black font-black px-8 py-3 rounded-full transition-all">
-                START TESTING
+            <button onclick="startPhase2()" class="bg-yellow-500 hover:bg-white hover:text-yellow-600 text-black font-black px-16 py-5 rounded-full text-2xl transition-all transform hover:scale-110 shadow-[0_0_30px_#f59e0b]">
+                PROBAR LANZAMIENTO
             </button>
         </div>
     </div>
 
     <!-- HUD -->
     <div id="hud" class="hidden absolute top-6 w-[800px] flex justify-between items-end px-4 z-10 pointer-events-none">
-        <div>
-            <span class="text-blue-400 font-black text-[10px] tracking-widest uppercase">Pizzas in Stock</span>
+        <div class="flex flex-col">
+            <span class="text-blue-400 font-black text-[10px] tracking-widest uppercase mb-1">Stock</span>
             <div class="bg-gray-900/80 px-6 py-2 rounded-lg border-2 border-blue-500">
                 <span id="extra-val" class="pizza-font text-4xl text-white">10</span>
             </div>
         </div>
         
         <div class="flex flex-col items-center">
-            <span class="text-red-500 font-black text-[10px] tracking-widest uppercase mb-1">Time Left</span>
+            <span class="text-red-500 font-black text-[10px] tracking-widest uppercase mb-1">Time</span>
             <div class="bg-gray-900/80 px-8 py-2 rounded-full border-2 border-red-500">
                 <span id="timer-val" class="pizza-font text-5xl text-white">60s</span>
             </div>
         </div>
 
-        <div class="text-right">
-            <span class="text-yellow-500 font-black text-[10px] tracking-widest uppercase">Delivered</span>
+        <div class="flex flex-col items-end">
+            <span class="text-yellow-500 font-black text-[10px] tracking-widest uppercase mb-1">Delivered</span>
             <div class="bg-gray-900/80 px-6 py-2 rounded-lg border-2 border-yellow-500">
                 <span id="score-val" class="pizza-font text-4xl text-white">0</span>
             </div>
@@ -64,35 +62,6 @@
     <div id="game-container" class="neon-border bg-black"></div>
 
     <script>
-        // --- Stellar / Freighter Logic ---
-        let userAddress = null;
-        async function connectWallet() {
-            try {
-                if (window.freighterApi) {
-                    const isAllowed = await window.freighterApi.setAllowed();
-                    if (isAllowed) {
-                        const { address } = await window.freighterApi.getUserInfo();
-                        userAddress = address;
-                        document.getElementById('wallet-status').innerText = `CONNECTED: ${address.substring(0,6)}...${address.substring(50)}`;
-                        document.getElementById('wallet-status').classList.replace('bg-gray-800', 'bg-green-900/40');
-                        document.getElementById('start-btn').disabled = false;
-                        playSfx(880, 'sine', 0.2);
-                    }
-                } else {
-                    alert("Freighter not found! Please install the extension.");
-                }
-            } catch (e) {
-                console.error(e);
-            }
-        }
-
-        // --- State ---
-        let pizzasCreated = 10;
-        let pizzasDelivered = 0;
-        let timeLeft = 60;
-        let isPlaying = false;
-        let dragStartX, dragStartY;
-
         // --- Audio ---
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playSfx(freq, type, dur, vol=0.1) {
@@ -106,13 +75,20 @@
             osc.start(); osc.stop(audioCtx.currentTime + dur);
         }
 
-        // --- Phaser Phase 2 ---
+        // --- State ---
+        let score = 0;
+        let pizzasCreated = 10;
+        let timeLeft = 60;
+        let isPlaying = false;
+        let dragStartX, dragStartY;
+
+        // --- Phaser Config ---
         const config = {
             type: Phaser.AUTO,
             parent: 'game-container',
             width: 800,
             height: 600,
-            backgroundColor: '#0a0a0a',
+            backgroundColor: '#1a110a',
             physics: { default: 'arcade', arcade: { debug: false } },
             scene: { preload, create, update }
         };
@@ -124,10 +100,25 @@
 
         function create() {
             sceneInstance = this;
+            
+            // Ground
+            this.add.grid(400, 300, 800, 600, 50, 50, 0, 0, 0x2d1b0d);
+            
+            tables = this.physics.add.group();
+            deliveredPizzas = this.physics.add.group();
+            
+            // Counter
+            this.add.rectangle(400, 580, 800, 40, 0x3d2b1f).setStrokeStyle(2, 0xff00ff);
+            
+            // Overlap logic
+            this.physics.add.overlap(deliveredPizzas, tables, handleDelivery, null, this);
+            
+            trajectoryLine = this.add.graphics();
+
+            // Flick Controls
             this.input.on('pointerdown', startToss);
             this.input.on('pointerup', endToss);
             this.input.on('pointermove', updateToss);
-            trajectoryLine = this.add.graphics();
         }
 
         function update() {}
@@ -136,47 +127,34 @@
             document.getElementById('overlay').classList.add('hidden');
             document.getElementById('hud').classList.remove('hidden');
             isPlaying = true;
-            setupScene();
+            for(let i=0; i<5; i++) spawnTable();
             startTimer();
             updateUI();
         }
 
-        function setupScene() {
-            const self = sceneInstance;
-            self.children.removeAll();
-            self.add.rectangle(400, 300, 800, 600, 0x1a110a);
-            self.add.grid(400, 300, 800, 600, 50, 50, 0, 0, 0x2d1b0d);
-            
-            tables = self.physics.add.group();
-            deliveredPizzas = self.physics.add.group();
-            
-            for(let i=0; i<5; i++) spawnTable();
-
-            self.add.rectangle(400, 580, 800, 40, 0x3d2b1f).setStrokeStyle(2, 0xff00ff);
-            self.physics.add.overlap(deliveredPizzas, tables, handleDelivery, null, self);
-            trajectoryLine = self.add.graphics();
-        }
-
         function spawnTable() {
             const x = Phaser.Math.Between(100, 700);
-            const y = Phaser.Math.Between(80, 450);
+            const y = Phaser.Math.Between(100, 450);
             const table = sceneInstance.add.container(x, y);
-            const wood = sceneInstance.add.circle(0, 0, 40, 0x5d4037).setStrokeStyle(4, 0xffffff);
+            
+            const wood = sceneInstance.add.circle(0, 0, 45, 0x5d4037).setStrokeStyle(4, 0xffffff);
             const icon = sceneInstance.add.text(-15, -15, "👤", { fontSize: '30px' });
-            const happy = sceneInstance.add.text(-15, -50, "😋", { fontSize: '30px' }).setAlpha(0);
+            const happy = sceneInstance.add.text(-15, -55, "😋", { fontSize: '30px' }).setAlpha(0);
             
             table.add([wood, icon, happy]);
             table.setData('isServed', false);
+            
             tables.add(table);
             sceneInstance.physics.add.existing(table);
-            table.body.setCircle(40, -40, -40);
+            table.body.setCircle(45, -45, -45);
         }
 
         function startToss(pointer) {
             if(!isPlaying || pizzasCreated <= 0) return;
             dragStartX = pointer.x;
             dragStartY = pointer.y;
-            activePizza = sceneInstance.add.container(400, 550);
+            
+            activePizza = sceneInstance.add.container(400, 540);
             activePizza.add([
                 sceneInstance.add.circle(0, 0, 25, 0xffcc00).setStrokeStyle(3, 0xffffff),
                 sceneInstance.add.text(-15, -15, "🍕", { fontSize: '30px' })
@@ -187,65 +165,73 @@
         function updateToss(pointer) {
             if(!activePizza) return;
             trajectoryLine.clear();
-            trajectoryLine.lineStyle(3, 0x00ffcc, 0.5);
+            trajectoryLine.lineStyle(4, 0x00ffcc, 0.5);
+            
             trajectoryLine.beginPath();
-            trajectoryLine.moveTo(400, 550);
+            trajectoryLine.moveTo(400, 540);
             const dx = pointer.x - dragStartX;
             const dy = pointer.y - dragStartY;
-            trajectoryLine.lineTo(400 + dx, 550 + dy);
+            trajectoryLine.lineTo(400 + dx, 540 + dy);
             trajectoryLine.strokePath();
         }
 
         function endToss(pointer) {
             if(!activePizza) return;
             trajectoryLine.clear();
+            
             const dx = pointer.x - dragStartX;
             const dy = pointer.y - dragStartY;
             
-            if(Math.abs(dx) < 10 && Math.abs(dy) < 10) { activePizza.destroy(); activePizza = null; return; }
+            if(Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+                activePizza.destroy();
+                activePizza = null;
+                return;
+            }
 
             pizzasCreated--;
             updateUI();
             
             sceneInstance.physics.add.existing(activePizza);
-            const power = 3.5;
+            const power = 3.8;
             activePizza.body.setVelocity(dx * power, dy * power);
             activePizza.body.setDrag(50);
             activePizza.body.setCircle(25, -25, -25);
             deliveredPizzas.add(activePizza);
             
+            // Launch arc
             sceneInstance.tweens.add({ targets: activePizza, scale: 2, yoyo: true, duration: 400 });
-            playSfx(600, 'sine', 0.2, 0.1);
+            playSfx(500, 'sine', 0.2, 0.1);
             activePizza = null;
         }
 
         function handleDelivery(pizza, table) {
             if(table.getData('isServed')) return;
             table.setData('isServed', true);
-            table.body.setEnable(false);
+            table.body.setEnable(false); // No more collisions
 
-            pizzasDelivered++;
+            score++;
+            updateUI();
             playSfx(880, 'sine', 0.3, 0.1);
             sceneInstance.cameras.main.shake(100, 0.005);
-            updateUI();
 
-            // Visuals
+            // Visual satisfaction
             table.list[0].setStrokeStyle(6, 0x22c55e);
             table.list[2].setAlpha(1);
 
-            // Group pizza and table for movement
+            // Carry pizza away animation
             sceneInstance.tweens.add({
                 targets: [table, pizza],
                 x: -200,
                 duration: 2500,
                 ease: 'Power2',
-                onComplete: () => { 
-                    table.destroy(); 
+                onComplete: () => {
+                    table.destroy();
                     pizza.destroy();
-                    if(isPlaying) spawnTable(); 
+                    if(isPlaying) spawnTable();
                 }
             });
 
+            // Jump effect
             sceneInstance.tweens.add({ targets: [table, pizza], y: table.y - 40, duration: 200, yoyo: true, repeat: 1 });
         }
 
@@ -259,7 +245,7 @@
         }
 
         function updateUI() {
-            document.getElementById('score-val').innerText = pizzasDelivered;
+            document.getElementById('score-val').innerText = score;
             document.getElementById('extra-val').innerText = pizzasCreated;
         }
 
@@ -267,11 +253,11 @@
             const overlay = document.getElementById('overlay');
             overlay.classList.remove('hidden');
             overlay.innerHTML = `
-                <h1 class="pizza-font text-7xl text-yellow-500 mb-8">SHIFT COMPLETE</h1>
-                <div class="bg-gray-900/80 p-10 rounded-3xl border-2 border-blue-500 mb-10">
-                    <p class="text-4xl pizza-font text-white">DELIVERED: ${pizzasDelivered}</p>
+                <h1 class="pizza-font text-8xl text-yellow-500 mb-8">SHIFT DONE</h1>
+                <div class="bg-gray-900 p-10 rounded-3xl border-2 border-blue-500 mb-10">
+                    <p class="text-4xl pizza-font">DELIVERED: ${score}</p>
                 </div>
-                <button onclick="location.reload()" class="bg-blue-600 text-white font-black px-12 py-4 rounded-full text-2xl">RETRY</button>
+                <button onclick="location.reload()" class="bg-blue-600 text-white font-black px-12 py-5 rounded-full text-2xl shadow-xl">RETRY SHIFT</button>
             `;
         }
     </script>
