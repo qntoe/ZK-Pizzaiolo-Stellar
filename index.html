@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZK-Pizzaiolo: Rhythm Arcade 🕶️🍕</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser-arcade-physics.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Pacifico&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            background-color: #050505;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            font-family: 'Orbitron', sans-serif;
+            color: #00ffcc;
+        }
+        #game-container {
+            border: 4px solid #ff00ff;
+            box-shadow: 0 0 20px #ff00ff, inset 0 0 10px #ff00ff;
+            border-radius: 8px;
+        }
+        .ui-panel {
+            margin-top: 20px;
+            text-align: center;
+            background: rgba(255, 0, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #ff00ff;
+        }
+        .btn-stellar {
+            background: #00ffcc;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            font-family: 'Orbitron', sans-serif;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+        .btn-stellar:hover {
+            background: #fff;
+            box-shadow: 0 0 15px #00ffcc;
+        }
+        h1 {
+            font-family: 'Pacifico', cursive;
+            font-size: 3rem;
+            margin: 0 0 10px 0;
+            color: #ff00ff;
+            text-shadow: 0 0 10px #ff00ff;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>ZK-Pizzaiolo</h1>
+    <div id="game-container"></div>
+
+    <div class="ui-panel">
+        <div id="status">Puntaje: 0 | Combo: x1</div>
+        <button class="btn-stellar" onclick="submitZKProof()">Submit ZK Proof to Soroban</button>
+    </div>
+
+    <script>
+        const config = {
+            type: Phaser.AUTO,
+            parent: 'game-container',
+            width: 800,
+            height: 500,
+            physics: {
+                default: 'arcade',
+                arcade: {
+                    gravity: { y: 300 },
+                    debug: false
+                }
+            },
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            }
+        };
+
+        const game = new Phaser.Game(config);
+        let pizza;
+        let ingredients;
+        let score = 0;
+        let combo = 1;
+        let scoreText;
+
+        function preload() {
+            // Placeholders de alta calidad (Shapes con Glow)
+            // En el futuro cargaremos los assets de Kenney aquí
+        }
+
+        function create() {
+            // Fondo neón
+            this.add.rectangle(400, 250, 800, 500, 0x0a0a0a);
+            
+            // Rejilla arcade
+            for(let i=0; i<800; i+=40) {
+                this.add.line(0,0, i, 0, i, 500, 0x333333).setOrigin(0);
+                this.add.line(0,0, 0, i, 800, i, 0x333333).setOrigin(0);
+            }
+
+            // La Pizza (Target)
+            pizza = this.add.circle(400, 430, 60, 0xffcc00);
+            pizza.setStrokeStyle(4, 0xff00ff);
+            this.physics.add.existing(pizza, true); // Static body
+
+            // Grupo de ingredientes
+            ingredients = this.physics.add.group();
+
+            // Spawn loop (Ritmo)
+            this.time.addEvent({
+                delay: 1000,
+                callback: spawnIngredient,
+                callbackScope: this,
+                loop: true
+            });
+
+            // Colisión
+            this.physics.add.overlap(pizza, ingredients, catchIngredient, null, this);
+
+            // Texto de UI interno
+            scoreText = this.add.text(16, 16, 'SCORE: 0', { 
+                fontSize: '24px', 
+                fill: '#00ffcc',
+                fontFamily: 'Orbitron'
+            });
+        }
+
+        function spawnIngredient() {
+            const x = Phaser.Math.Between(350, 450);
+            const ingredient = this.add.circle(x, -20, 15, 0xff0000);
+            ingredient.setStrokeStyle(2, 0xffffff);
+            ingredients.add(ingredient);
+            
+            // Efecto de brillo
+            this.tweens.add({
+                targets: ingredient,
+                alpha: 0.5,
+                yoyo: true,
+                repeat: -1,
+                duration: 200
+            });
+        }
+
+        function catchIngredient(pizza, ingredient) {
+            ingredient.destroy();
+            score += 100 * combo;
+            scoreText.setText('SCORE: ' + score);
+            document.getElementById('status').innerText = `Puntaje: ${score} | Combo: x${combo}`;
+            
+            // Flash effect
+            this.cameras.main.flash(100, 0, 255, 204, 0.1);
+        }
+
+        function update() {
+            // Cleanup ingredients que caen al vacío
+            ingredients.children.iterate(function (child) {
+                if (child && child.y > 500) {
+                    child.destroy();
+                    combo = 1; // Reset combo
+                    document.getElementById('status').innerText = `Puntaje: ${score} | Combo: x${combo}`;
+                }
+            });
+        }
+
+        function submitZKProof() {
+            alert(`Generando Prueba ZK para Score: ${score}...\nEnviando a Stellar Soroban...`);
+            // Aquí irá la lógica de mcporter call para Noir y Stellar
+        }
+    </script>
+</body>
+</html>
