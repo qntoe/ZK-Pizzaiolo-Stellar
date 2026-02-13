@@ -21,39 +21,51 @@
         }
         #game-container {
             border: 4px solid #ff00ff;
-            box-shadow: 0 0 20px #ff00ff, inset 0 0 10px #ff00ff;
-            border-radius: 8px;
+            box-shadow: 0 0 30px #ff00ff, inset 0 0 15px #ff00ff;
+            border-radius: 12px;
+            background: #000;
         }
         .ui-panel {
             margin-top: 20px;
             text-align: center;
-            background: rgba(255, 0, 255, 0.1);
-            padding: 15px;
-            border-radius: 10px;
-            border: 1px solid #ff00ff;
+            background: rgba(0, 255, 204, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid #00ffcc;
+            width: 800px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .btn-stellar {
-            background: #00ffcc;
-            color: #000;
+            background: #ff00ff;
+            color: #fff;
             border: none;
-            padding: 10px 20px;
+            padding: 12px 24px;
             font-family: 'Orbitron', sans-serif;
             font-weight: bold;
             cursor: pointer;
             border-radius: 5px;
             text-transform: uppercase;
             transition: 0.3s;
+            box-shadow: 0 0 10px #ff00ff;
         }
         .btn-stellar:hover {
             background: #fff;
-            box-shadow: 0 0 15px #00ffcc;
+            color: #ff00ff;
+            box-shadow: 0 0 20px #fff;
         }
         h1 {
             font-family: 'Pacifico', cursive;
-            font-size: 3rem;
-            margin: 0 0 10px 0;
+            font-size: 3.5rem;
+            margin: 0 0 15px 0;
             color: #ff00ff;
-            text-shadow: 0 0 10px #ff00ff;
+            text-shadow: 0 0 15px #ff00ff, 0 0 30px #ff00ff;
+        }
+        .controls-hint {
+            font-size: 0.8rem;
+            color: #666;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -63,8 +75,12 @@
     <div id="game-container"></div>
 
     <div class="ui-panel">
-        <div id="status">Puntaje: 0 | Combo: x1</div>
-        <button class="btn-stellar" onclick="submitZKProof()">Submit ZK Proof to Soroban</button>
+        <div>
+            <div id="status" style="font-size: 1.2rem; font-weight: bold;">SCORE: 0 | COMBO: x1</div>
+            <div class="controls-hint">Teclas: [A] [S] [K] [L] para cada carril</div>
+        </div>
+        <div id="feedback" style="font-size: 1.5rem; color: #fff; text-shadow: 0 0 10px #fff;">READY?</div>
+        <button class="btn-stellar" onclick="submitZKProof()">Submit to Stellar</button>
     </div>
 
     <script>
@@ -72,13 +88,10 @@
             type: Phaser.AUTO,
             parent: 'game-container',
             width: 800,
-            height: 500,
+            height: 600,
             physics: {
                 default: 'arcade',
-                arcade: {
-                    gravity: { y: 300 },
-                    debug: false
-                }
+                arcade: { debug: false }
             },
             scene: {
                 preload: preload,
@@ -88,94 +101,143 @@
         };
 
         const game = new Phaser.Game(config);
-        let pizza;
+        
+        // Carriles (Lanes)
+        const LANES = [200, 333, 466, 600];
+        const KEYS = ['A', 'S', 'K', 'L'];
+        const LANE_COLORS = [0x00ffcc, 0xff00ff, 0x00ffcc, 0xff00ff];
+        
         let ingredients;
         let score = 0;
         let combo = 1;
-        let scoreText;
+        let keyObjects = {};
+        let hitZones = [];
 
-        function preload() {
-            // Placeholders de alta calidad (Shapes con Glow)
-            // En el futuro cargaremos los assets de Kenney aquí
-        }
+        function preload() {}
 
         function create() {
-            // Fondo neón
-            this.add.rectangle(400, 250, 800, 500, 0x0a0a0a);
+            const self = this;
             
-            // Rejilla arcade
-            for(let i=0; i<800; i+=40) {
-                this.add.line(0,0, i, 0, i, 500, 0x333333).setOrigin(0);
-                this.add.line(0,0, 0, i, 800, i, 0x333333).setOrigin(0);
-            }
+            // Fondo con rejilla perspectiva
+            const graphics = this.add.graphics();
+            graphics.lineStyle(2, 0x1a1a1a);
+            for(let i=0; i<=800; i+=40) { graphics.lineBetween(i, 0, i, 600); }
+            for(let i=0; i<=600; i+=40) { graphics.lineBetween(0, i, 800, i); }
 
-            // La Pizza (Target)
-            pizza = this.add.circle(400, 430, 60, 0xffcc00);
-            pizza.setStrokeStyle(4, 0xff00ff);
-            this.physics.add.existing(pizza, true); // Static body
+            // Dibujar Carriles
+            LANES.forEach((x, i) => {
+                // Glow de carril
+                const beam = this.add.rectangle(x, 300, 60, 600, LANE_COLORS[i], 0.05);
+                
+                // Zona de impacto (Hit Zone)
+                const zone = this.add.circle(x, 530, 35, 0x000000);
+                zone.setStrokeStyle(3, LANE_COLORS[i]);
+                hitZones.push(zone);
 
-            // Grupo de ingredientes
+                // Letra de control
+                this.add.text(x - 10, 565, KEYS[i], { 
+                    fontFamily: 'Orbitron', fontSize: '20px', fill: '#666' 
+                });
+
+                // Registrar Teclas
+                keyObjects[KEYS[i]] = this.input.keyboard.addKey(KEYS[i]);
+                
+                // Evento de tecla presionada
+                keyObjects[KEYS[i]].on('down', () => {
+                    checkHit.call(self, i);
+                    // Efecto visual de tecla
+                    zone.setFillStyle(LANE_COLORS[i], 0.3);
+                    self.time.delayedCall(100, () => zone.setFillStyle(0x000000, 0));
+                });
+            });
+
             ingredients = this.physics.add.group();
 
-            // Spawn loop (Ritmo)
+            // Spawn loop dinámico (BPM)
             this.time.addEvent({
-                delay: 1000,
+                delay: 800,
                 callback: spawnIngredient,
                 callbackScope: this,
                 loop: true
             });
-
-            // Colisión
-            this.physics.add.overlap(pizza, ingredients, catchIngredient, null, this);
-
-            // Texto de UI interno
-            scoreText = this.add.text(16, 16, 'SCORE: 0', { 
-                fontSize: '24px', 
-                fill: '#00ffcc',
-                fontFamily: 'Orbitron'
-            });
         }
 
         function spawnIngredient() {
-            const x = Phaser.Math.Between(350, 450);
-            const ingredient = this.add.circle(x, -20, 15, 0xff0000);
-            ingredient.setStrokeStyle(2, 0xffffff);
-            ingredients.add(ingredient);
+            const laneIndex = Phaser.Math.Between(0, 3);
+            const x = LANES[laneIndex];
             
-            // Efecto de brillo
-            this.tweens.add({
-                targets: ingredient,
-                alpha: 0.5,
-                yoyo: true,
-                repeat: -1,
-                duration: 200
-            });
+            const ing = this.add.circle(x, -50, 25, LANE_COLORS[laneIndex]);
+            ing.setStrokeStyle(2, 0xffffff);
+            ing.setData('lane', laneIndex);
+            
+            ingredients.add(ing);
+            ing.body.setVelocityY(400); // Velocidad constante para ritmo
         }
 
-        function catchIngredient(pizza, ingredient) {
-            ingredient.destroy();
-            score += 100 * combo;
-            scoreText.setText('SCORE: ' + score);
-            document.getElementById('status').innerText = `Puntaje: ${score} | Combo: x${combo}`;
+        function checkHit(laneIndex) {
+            let hitFound = false;
+            ingredients.children.iterate((ing) => {
+                if (!ing || ing.getData('lane') !== laneIndex) return;
+
+                const distance = Math.abs(ing.y - 530);
+                
+                if (distance < 70) {
+                    hitFound = true;
+                    processHit.call(this, ing, distance);
+                }
+            });
+
+            if (!hitFound) {
+                // Ghost hit / Miss
+                combo = 1;
+                updateUI('MISS', '#ff0000');
+            }
+        }
+
+        function processHit(ing, dist) {
+            ing.destroy();
+            let points = 0;
+            let label = '';
+            let color = '';
+
+            if (dist < 20) {
+                points = 200; label = 'PERFECT!'; color = '#fffb00';
+            } else if (dist < 45) {
+                points = 100; label = 'GOOD'; color = '#00ffcc';
+            } else {
+                points = 50; label = 'OK'; color = '#ff00ff';
+            }
+
+            score += points * combo;
+            combo++;
             
-            // Flash effect
-            this.cameras.main.flash(100, 0, 255, 204, 0.1);
+            updateUI(label, color);
+            
+            // Efecto de partículas (falso)
+            this.cameras.main.shake(100, 0.005);
+        }
+
+        function updateUI(label, color) {
+            const fb = document.getElementById('feedback');
+            fb.innerText = label;
+            fb.style.color = color;
+            fb.style.textShadow = `0 0 15px ${color}`;
+            
+            document.getElementById('status').innerText = `SCORE: ${score} | COMBO: x${combo}`;
         }
 
         function update() {
-            // Cleanup ingredients que caen al vacío
-            ingredients.children.iterate(function (child) {
-                if (child && child.y > 500) {
-                    child.destroy();
-                    combo = 1; // Reset combo
-                    document.getElementById('status').innerText = `Puntaje: ${score} | Combo: x${combo}`;
+            ingredients.children.iterate((ing) => {
+                if (ing && ing.y > 650) {
+                    ing.destroy();
+                    combo = 1;
+                    updateUI('MISS', '#ff0000');
                 }
             });
         }
 
         function submitZKProof() {
-            alert(`Generando Prueba ZK para Score: ${score}...\nEnviando a Stellar Soroban...`);
-            // Aquí irá la lógica de mcporter call para Noir y Stellar
+            alert(`🛡️ Consigliere Slice: Generando Prueba ZK...\nPuntaje Verificado: ${score}\nEnviando a Stellar Soroban...`);
         }
     </script>
 </body>
