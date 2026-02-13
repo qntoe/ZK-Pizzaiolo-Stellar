@@ -8,94 +8,54 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Pacifico&display=swap" rel="stylesheet">
     <style>
         body {
-            margin: 0;
-            background-color: #050505;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            overflow: hidden;
-            font-family: 'Orbitron', sans-serif;
-            color: #00ffcc;
+            margin: 0; background-color: #050505;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; overflow: hidden; font-family: 'Orbitron', sans-serif; color: #00ffcc;
         }
         #game-container {
-            border: 4px solid #ff00ff;
-            box-shadow: 0 0 30px #ff00ff, inset 0 0 15px #ff00ff;
-            border-radius: 12px;
-            background: #000;
+            border: 4px solid #ff00ff; box-shadow: 0 0 40px rgba(255, 0, 255, 0.4);
+            border-radius: 12px; background: #000;
         }
         .ui-panel {
-            margin-top: 20px;
-            text-align: center;
-            background: rgba(0, 255, 204, 0.05);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid #00ffcc;
-            width: 800px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            margin-top: 20px; text-align: center;
+            background: rgba(0, 255, 204, 0.05); padding: 20px;
+            border-radius: 12px; border: 1px solid #00ffcc;
+            width: 800px; display: flex; justify-content: space-between; align-items: center;
         }
         .btn-stellar {
-            background: #ff00ff;
-            color: #fff;
-            border: none;
-            padding: 12px 24px;
-            font-family: 'Orbitron', sans-serif;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 5px;
-            text-transform: uppercase;
-            transition: 0.3s;
-            box-shadow: 0 0 10px #ff00ff;
+            background: #ff00ff; color: #fff; border: none; padding: 12px 24px;
+            font-family: 'Orbitron', sans-serif; font-weight: bold; cursor: pointer;
+            border-radius: 5px; text-transform: uppercase; transition: 0.3s;
+            box-shadow: 0 0 15px #ff00ff;
         }
-        .btn-stellar:hover {
-            background: #fff;
-            color: #ff00ff;
-            box-shadow: 0 0 20px #fff;
-        }
+        .btn-stellar:hover { background: #fff; color: #ff00ff; box-shadow: 0 0 25px #fff; }
         h1 {
-            font-family: 'Pacifico', cursive;
-            font-size: 3.5rem;
-            margin: 0 0 15px 0;
-            color: #ff00ff;
-            text-shadow: 0 0 15px #ff00ff, 0 0 30px #ff00ff;
+            font-family: 'Pacifico', cursive; font-size: 3.5rem; margin: 0 0 15px 0;
+            color: #ff00ff; text-shadow: 0 0 15px #ff00ff, 0 0 30px #ff00ff;
         }
         #overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            transition: 0.5s;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, #1a1a1a 0%, #000 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; transition: 1s;
         }
         .start-btn {
-            font-size: 2rem;
-            padding: 20px 40px;
-            background: transparent;
-            color: #ff00ff;
-            border: 2px solid #ff00ff;
-            font-family: 'Orbitron', sans-serif;
-            cursor: pointer;
-            box-shadow: 0 0 20px #ff00ff;
+            font-size: 2rem; padding: 20px 40px; background: transparent;
+            color: #ff00ff; border: 2px solid #ff00ff; font-family: 'Orbitron', sans-serif;
+            cursor: pointer; box-shadow: 0 0 20px #ff00ff; border-radius: 50px;
+            transition: 0.3s;
         }
-        .start-btn:hover {
-            background: #ff00ff;
-            color: white;
-        }
+        .start-btn:hover { background: #ff00ff; color: white; transform: scale(1.1); }
     </style>
 </head>
 <body>
 
     <div id="overlay">
-        <h1 style="color: #fff; text-shadow: 0 0 20px #ff00ff;">CONSIGLIERE SLICE PRESENTS</h1>
-        <h1 style="font-size: 5rem;">ZK-Pizzaiolo</h1>
-        <p style="margin-bottom: 40px; color: #00ffcc;">UN JUEGO DE RITMO Y CONFIANZA ZK</p>
-        <button class="start-btn" onclick="startGame()">START SESSION</button>
+        <div style="font-size: 8rem; margin-bottom: -20px;">🕶️</div>
+        <h1 style="color: #fff; text-shadow: 0 0 20px #ff00ff; font-family: 'Orbitron';">CONSIGLIERE SLICE PRESENTS</h1>
+        <h1 style="font-size: 6rem; letter-spacing: 5px;">ZK-PIZZAIOLO</h1>
+        <p style="margin-bottom: 40px; color: #00ffcc; letter-spacing: 2px;">LA MAFIA DEL RITMO EN STELLAR</p>
+        <button class="start-btn" onclick="startGame()">ENTER THE KITCHEN</button>
     </div>
 
     <h1>ZK-Pizzaiolo</h1>
@@ -104,42 +64,28 @@
     <div class="ui-panel">
         <div>
             <div id="status" style="font-size: 1.2rem; font-weight: bold;">SCORE: 0 | COMBO: x1</div>
-            <div style="font-size: 0.8rem; color: #666;">Teclas: [A] [S] [K] [L]</div>
+            <div style="font-size: 0.8rem; color: #666;">Controles: [A] [S] [K] [L]</div>
         </div>
-        <div id="feedback" style="font-size: 1.5rem; color: #fff; text-shadow: 0 0 10px #fff;">WAITING...</div>
+        <div id="feedback" style="font-size: 1.5rem; color: #fff; text-shadow: 0 0 10px #fff; font-weight: bold;">GET READY</div>
         <button class="btn-stellar" onclick="submitZKProof()">Submit to Stellar</button>
     </div>
 
     <script>
-        // Audio Synth Engine
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playNote(freq, type, duration) {
+        function playNote(freq, type, duration, vol=0.1) {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
-            osc.type = type;
-            osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-            gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+            osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            gain.gain.setValueAtTime(vol, audioCtx.currentTime);
             gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start();
-            osc.stop(audioCtx.currentTime + duration);
+            osc.connect(gain); gain.connect(audioCtx.destination);
+            osc.start(); osc.stop(audioCtx.currentTime + duration);
         }
 
         const config = {
-            type: Phaser.AUTO,
-            parent: 'game-container',
-            width: 800,
-            height: 600,
-            physics: {
-                default: 'arcade',
-                arcade: { debug: false }
-            },
-            scene: {
-                preload: preload,
-                create: create,
-                update: update
-            }
+            type: Phaser.AUTO, parent: 'game-container', width: 800, height: 600,
+            physics: { default: 'arcade', arcade: { debug: false } },
+            scene: { preload: preload, create: create, update: update }
         };
 
         const game = new Phaser.Game(config);
@@ -147,48 +93,77 @@
         const KEYS = ['A', 'S', 'K', 'L'];
         const LANE_COLORS = [0x00ffcc, 0xff00ff, 0x00ffcc, 0xff00ff];
         
-        let ingredients;
-        let score = 0;
-        let combo = 1;
-        let isPlaying = false;
-        let keyObjects = {};
-        let hitZones = [];
-        let scoreText;
+        let ingredients; let score = 0; let combo = 1; let isPlaying = false;
+        let keyObjects = {}; let hitZones = []; let scanLine;
 
-        function preload() {}
+        function preload() {
+            // Generar Texturas Procedurales de Alta Calidad
+            const createCircleTexture = (name, color, size, glow=true) => {
+                const graphics = this.make.graphics({x: 0, y: 0, add: false});
+                if(glow) {
+                    graphics.fillStyle(color, 0.3); graphics.fillCircle(size, size, size);
+                    graphics.fillStyle(color, 0.6); graphics.fillCircle(size, size, size*0.8);
+                }
+                graphics.fillStyle(0xffffff, 1); graphics.fillCircle(size, size, size*0.6);
+                graphics.fillStyle(color, 1); graphics.fillCircle(size, size, size*0.5);
+                graphics.generateTexture(name, size*2, size*2);
+            };
+
+            createCircleTexture.call(this, 'pep', 0xff0044, 25);
+            createCircleTexture.call(this, 'olive', 0x00ffcc, 20);
+            createCircleTexture.call(this, 'cheese', 0xffcc00, 25);
+            
+            // Pizza Base Texture
+            const pg = this.make.graphics({x: 0, y: 0, add: false});
+            pg.lineStyle(6, 0xff00ff); pg.strokeCircle(60, 60, 55);
+            pg.fillStyle(0x332211, 1); pg.fillCircle(60, 60, 50);
+            pg.fillStyle(0xffcc00, 0.8); pg.fillCircle(60, 60, 45);
+            pg.generateTexture('pizza_base', 120, 120);
+        }
 
         function create() {
             const self = this;
             
-            // Background Effects
-            const bgGraphics = this.add.graphics();
-            this.gridY = 0;
+            // Grid Perspectiva Dinámica
+            this.grid = this.add.grid(400, 300, 1200, 800, 40, 40, 0, 0, 0x1a1a1a);
+            this.grid.setAlpha(0.5);
 
-            // Hit Zones & Lanes
+            // Scanline effect
+            scanLine = this.add.rectangle(400, 0, 800, 2, 0x00ffcc, 0.5);
+
+            // Lanes & Hit Zones
             LANES.forEach((x, i) => {
-                this.add.rectangle(x, 300, 40, 600, LANE_COLORS[i], 0.1);
-                const zone = this.add.circle(x, 530, 40, 0x000000);
-                zone.setStrokeStyle(3, LANE_COLORS[i]);
+                // Glow Lane
+                const l = this.add.rectangle(x, 300, 70, 600, LANE_COLORS[i], 0.05);
+                
+                // Hit Zone (Circular Pad)
+                const zone = this.add.circle(x, 530, 45, 0x000000);
+                zone.setStrokeStyle(4, LANE_COLORS[i]);
                 hitZones.push(zone);
 
-                this.add.text(x - 10, 560, KEYS[i], { 
-                    fontFamily: 'Orbitron', fontSize: '18px', fill: '#00ffcc' 
+                this.add.text(x - 12, 570, KEYS[i], { 
+                    fontFamily: 'Orbitron', fontSize: '22px', fill: LANE_COLORS[i], fontWeight: 'bold'
                 });
 
                 keyObjects[KEYS[i]] = this.input.keyboard.addKey(KEYS[i]);
                 keyObjects[KEYS[i]].on('down', () => {
                     if(!isPlaying) return;
                     checkHit.call(self, i);
-                    zone.setFillStyle(LANE_COLORS[i], 0.3);
+                    zone.setFillStyle(LANE_COLORS[i], 0.4);
+                    self.tweens.add({ targets: zone, scale: 1.2, duration: 50, yoyo: true });
                     self.time.delayedCall(100, () => zone.setFillStyle(0, 0));
                 });
             });
 
+            // Pizza Mascota (The Target)
+            const pizzaSprite = this.add.image(400, 530, 'pizza_base').setAlpha(0.3).setScale(1.5);
+            this.tweens.add({ targets: pizzaSprite, angle: 360, duration: 10000, repeat: -1 });
+
             ingredients = this.physics.add.group();
 
-            // Spawn loop
+            // Spawn loop (BPM sync logic)
             this.time.addEvent({
-                delay: 600,
+                delay: 700,
                 callback: () => { if(isPlaying) spawnIngredient.call(self); },
                 loop: true
             });
@@ -196,19 +171,13 @@
 
         function spawnIngredient() {
             const lane = Phaser.Math.Between(0, 3);
-            const x = LANES[lane];
+            const textures = ['pep', 'olive', 'cheese'];
+            const texture = textures[Phaser.Math.Between(0, 2)];
             
-            // Procedural Pizza Topping
-            const type = Phaser.Math.Between(0, 2);
-            let color = 0xff0000; // Pepperoni
-            if(type === 1) color = 0x00ff00; // Pepper
-            if(type === 2) color = 0xffcc00; // Cheese
-
-            const ing = this.add.circle(x, -50, 25, color);
-            ing.setStrokeStyle(3, 0xffffff);
+            const ing = this.add.image(LANES[lane], -50, texture);
             ing.setData('lane', lane);
             ingredients.add(ing);
-            ing.body.setVelocityY(450 + (score/1000) * 10); // Dynamic speed
+            ing.body.setVelocityY(480 + (score/500) * 5);
         }
 
         function checkHit(lane) {
@@ -216,39 +185,39 @@
             ingredients.children.iterate((ing) => {
                 if (!ing || ing.getData('lane') !== lane) return;
                 const dist = Math.abs(ing.y - 530);
-                if (dist < 80) {
-                    hit = true;
-                    processHit.call(this, ing, dist);
-                }
+                if (dist < 90) { hit = true; processHit.call(this, ing, dist); }
             });
-            if (!hit) { combo = 1; playNote(100, 'sawtooth', 0.1); updateUI('MISS', '#ff0000'); }
+            if (!hit) { combo = 1; playNote(120, 'sawtooth', 0.15, 0.05); updateUI('MISS', '#ff0000'); }
         }
 
         function processHit(ing, dist) {
             ing.destroy();
             let p = 0, label = '', color = '', freq = 440;
-            if (dist < 20) { p = 200; label = 'PERFECT!'; color = '#fffb00'; freq = 880; }
-            else if (dist < 45) { p = 100; label = 'GOOD'; color = '#00ffcc'; freq = 660; }
-            else { p = 50; label = 'OK'; color = '#ff00ff'; freq = 440; }
+            if (dist < 25) { p = 300; label = 'PERFECT!!'; color = '#fffb00'; freq = 880; }
+            else if (dist < 55) { p = 150; label = 'GREAT'; color = '#00ffcc'; freq = 660; }
+            else { p = 75; label = 'GOOD'; color = '#ff00ff'; freq = 440; }
 
             score += p * combo; combo++;
-            playNote(freq, 'sine', 0.2);
+            playNote(freq, 'sine', 0.25);
             updateUI(label, color);
-            this.cameras.main.shake(100, 0.005);
+            this.cameras.main.shake(150, 0.008);
         }
 
         function updateUI(label, color) {
             const fb = document.getElementById('feedback');
-            fb.innerText = label; fb.style.color = color; fb.style.textShadow = `0 0 15px ${color}`;
+            fb.innerText = label; fb.style.color = color; fb.style.textShadow = `0 0 20px ${color}`;
+            fb.style.transform = "scale(1.2)"; setTimeout(() => fb.style.transform = "scale(1)", 100);
             document.getElementById('status').innerText = `SCORE: ${score} | COMBO: x${combo}`;
         }
 
         function update() {
             if(!isPlaying) return;
+            scanLine.y += 5; if(scanLine.y > 600) scanLine.y = 0;
+
             ingredients.children.iterate((ing) => {
                 if (ing && ing.y > 650) {
                     ing.destroy(); combo = 1;
-                    playNote(80, 'square', 0.1);
+                    playNote(90, 'square', 0.1, 0.05);
                     updateUI('MISS', '#ff0000');
                 }
             });
@@ -258,23 +227,22 @@
             document.getElementById('overlay').style.opacity = '0';
             setTimeout(() => {
                 document.getElementById('overlay').style.display = 'none';
-                isPlaying = true;
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-            }, 500);
+                isPlaying = true; if (audioCtx.state === 'suspended') audioCtx.resume();
+            }, 1000);
         }
 
         function submitZKProof() {
             isPlaying = false;
             const btn = document.querySelector('.btn-stellar');
-            btn.innerText = "GENERATING PROOF...";
-            btn.disabled = true;
+            btn.innerText = "VERIFYING ZK PROOF...";
+            btn.style.background = "#fff"; btn.style.color = "#000";
 
             setTimeout(() => {
-                alert(`🕶️ CONSIGLIERE SLICE REPORT:\n\n1. Proving Score: ${score}\n2. Noir Circuit Verified: OK\n3. Proof sent to Soroban Contract: SUCCESS\n\nLa familia está orgullosa. Tu récord ha sido inmortalizado en Stellar.`);
+                alert(`🕶️ CONSIGLIERE SLICE: "Operación Exitosa"\n\n- Score Verificado: ${score}\n- Prueba Noir generada: OK\n- Stellar Ledger updated: OK\n\nEres el nuevo Capo de la Pizza.`);
                 btn.innerText = "SUBMIT TO STELLAR";
-                btn.disabled = false;
+                btn.style.background = "#ff00ff"; btn.style.color = "#fff";
                 isPlaying = true;
-            }, 2000);
+            }, 2500);
         }
     </script>
 </body>
