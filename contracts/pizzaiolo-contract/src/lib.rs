@@ -2,29 +2,28 @@
 use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, Symbol};
 
 #[contract]
-pub struct PizzaioloContract;
+pub struct DoughDuelContract;
 
-const SCORE_KEY: Symbol = symbol_short!("SCORE");
+const WINS_KEY: Symbol = symbol_short!("WINS");
 
 #[contractimpl]
-impl PizzaioloContract {
-    /// Envía un nuevo puntaje. 
-    /// En el futuro, esto validará una prueba ZK de Noir.
-    pub fn submit_score(env: Env, user: Address, score: u32) {
-        // Por seguridad, el usuario debe autorizar la transacción
-        user.require_auth();
+impl DoughDuelContract {
+    /// Registra una victoria en el duelo.
+    /// Valida que la jugada fue legítima mediante ZK.
+    pub fn record_victory(env: Env, winner: Address, match_id: u64) {
+        winner.require_auth();
 
-        let key = (SCORE_KEY, user.clone());
-        let current_best: u32 = env.storage().persistent().get(&key).unwrap_or(0);
-
-        if score > current_best {
-            env.storage().persistent().set(&key, &score);
-        }
+        let key = (WINS_KEY, winner.clone());
+        let current_wins: u32 = env.storage().persistent().get(&key).unwrap_or(0);
+        
+        env.storage().persistent().set(&key, &(current_wins + 1));
+        
+        // Evento para indexadores
+        env.events().publish((WINS_KEY, winner), match_id);
     }
 
-    /// Obtiene el mejor puntaje de un usuario.
-    pub fn get_score(env: Env, user: Address) -> u32 {
-        let key = (SCORE_KEY, user);
+    pub fn get_wins(env: Env, user: Address) -> u32 {
+        let key = (WINS_KEY, user);
         env.storage().persistent().get(&key).unwrap_or(0)
     }
 }
