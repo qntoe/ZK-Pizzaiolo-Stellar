@@ -1,22 +1,31 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, vec, Env, String, Vec};
+use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, Symbol};
 
 #[contract]
-pub struct Contract;
+pub struct PizzaioloContract;
 
-// This is a sample contract. Replace this placeholder with your own contract logic.
-// A corresponding test example is available in `test.rs`.
-//
-// For comprehensive examples, visit <https://github.com/stellar/soroban-examples>.
-// The repository includes use cases for the Stellar ecosystem, such as data storage on
-// the blockchain, token swaps, liquidity pools, and more.
-//
-// Refer to the official documentation:
-// <https://developers.stellar.org/docs/build/smart-contracts/overview>.
+const SCORE_KEY: Symbol = symbol_short!("SCORE");
+
 #[contractimpl]
-impl Contract {
-    pub fn hello(env: Env, to: String) -> Vec<String> {
-        vec![&env, String::from_str(&env, "Hello"), to]
+impl PizzaioloContract {
+    /// Envía un nuevo puntaje. 
+    /// En el futuro, esto validará una prueba ZK de Noir.
+    pub fn submit_score(env: Env, user: Address, score: u32) {
+        // Por seguridad, el usuario debe autorizar la transacción
+        user.require_auth();
+
+        let key = (SCORE_KEY, user.clone());
+        let current_best: u32 = env.storage().persistent().get(&key).unwrap_or(0);
+
+        if score > current_best {
+            env.storage().persistent().set(&key, &score);
+        }
+    }
+
+    /// Obtiene el mejor puntaje de un usuario.
+    pub fn get_score(env: Env, user: Address) -> u32 {
+        let key = (SCORE_KEY, user);
+        env.storage().persistent().get(&key).unwrap_or(0)
     }
 }
 
